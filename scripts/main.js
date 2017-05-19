@@ -4,7 +4,8 @@ requirejs.config({
   baseUrl: 'scripts',
   paths: {
     jquery: '../vendor/jquery/jquery-3.2.0.min',
-    underscore: '../vendor/underscore/underscore.min'
+    underscore: '../vendor/underscore/underscore.min',
+    concrete: '../vendor/concrete/concrete.min'
   },
   shim: {
     'jquery': {
@@ -12,6 +13,9 @@ requirejs.config({
     },
     'underscore': {
       exports: '_'
+    },
+    'concrete': {
+      exports: 'Concrete'
     }
   }
 });
