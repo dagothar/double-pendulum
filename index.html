@@ -1,0 +1,69 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8"/>
+  <title>Double pendulum</title>
+
+  <link rel="stylesheet" href="vendor/bootstrap-3.3.7-dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="vendor/spectrum/spectrum.css"/>
+  <link rel="stylesheet" href="styles/main.css"/>
+
+</head>
+
+<body>
+  <!-- NAVIGATION -->
+  <div class="header">
+		<nav class="navbar navbar-default">
+			<div class="container">
+				<a class="navbar-brand text-center center-block" href="#">Double pendulum</a>
+			</div>
+		</nav>
+  </div>
+
+  <!-- CONTENTS -->
+  <div class="container-full">
+    <div class="row">
+
+      <!-- VIEW -->
+      <div class="col-md-8">
+        <div class="canvas-container" id="view"></div>
+      </div>
+
+
+      <!-- SIDE PANEL -->
+      <div class="col-md-3">
+        <div class="panel panel-default">
+          <div class="panel-heading">Controls</div>
+          <div class="panel-body">
+
+            <!-- new maze button -->
+            <div class="form-group col-md-12">
+              <button type="button" class="button-start btn btn-default btn-block">Start simulation <span class="glyphicon glyphicon-play"></span></button>
+            </div>
+            <div class="form-group col-md-12">
+              <button type="button" class="button-stop btn btn-default btn-block">Stop simulation <span class="glyphicon glyphicon-stop"></span></button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="container">
+        <p class="text-muted">&copy; 2017 by Adam Wolniakowski <a href="https://deltastep.blogspot.com">www.deltastep.blogspot.com</a></p>
+        <p class="text-muted">info about this demo: <a href="...">...</a></p>
+    </div>
+  </div>
+
+
+  <!-- SCRIPTS -->
+  <script src="vendor/requirejs/require.js" data-main="scripts/main"></script>
+</body>
+
+</html>
