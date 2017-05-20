@@ -103,16 +103,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
 
   var randomColor = function() {
-    var r = Math.floor(256 * Math.random());
-    var g = Math.floor(256 * Math.random());
-    var b = Math.floor(256 * Math.random());
-
-    var max = r > g ? (r > b ? r : b) : (g > b ? g : b);
-    r *= 255 / max;
-    g *= 255 / max;
-    b *= 255 / max;
-
-    return 'rgb(' + r.toFixed(0) + ', ' + g.toFixed(0) + ', ' + b.toFixed(0) + ')';
+    var h = Math.floor(360*Math.random());
+    return 'hsl(' + h + ', 100%, 50%)';
   };
 
 
