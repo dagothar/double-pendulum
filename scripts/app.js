@@ -74,17 +74,18 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   var model = function(t, u, x, p) {
     var tau1 =  u[0];
     var tau2 =  u[1];
-    var th1 =   x[0];
-    var dth1 =  x[1];
-    var th2 =   x[2];
-    var dth2 =  x[3];
+    var q1 =   x[0];
+    var dq1 =  x[1];
+    var q2 =   x[2];
+    var dq2 =  x[3];
+    var m1 = p.m1;
+    var m2 = p.m2;
+    var l1 = p.l1;
+    var l2 = p.l2;
+    var g = p.g;
 
-    var d2th1 = (-p.m2 * p.l2 * dth1 * dth1 * Math.sin(th1-th2) * Math.cos(th1-th2)  + p.g * p.m2 * Math.sin(th2) * Math.cos(th1-th2)
-      - p.m2 * p.l2 * dth2 * dth2 * Math.sin(th1-th2) - (p.m1 + p.m2) * p.g * Math.sin(th1)) / (p.l1 * (p.m1 + p.m2) - p.m2 * p.l1 *
-      Math.pow(Math.cos(th1-th2), 2));
-    var d2th2 = (p.m2 * p.l2 * dth2 * dth2 * Math.sin(th1-th2) * Math.cos(th1-th2) + p.g * Math.sin(th1) * Math.cos(th1-th2) * (p.m1 + p.m2)
-      + p.l1 * dth1 * dth1 * Math.sin(th1 - th2) * (p.m1 + p.m2) - p.g * Math.sin(th2) * (p.m1 + p.m2)) / (
-      p.l2 * (p.m1 + p.m2) - p.m2 * p.l2 * Math.pow(Math.cos(th1-th2), 2));
+    var d2th1 = -(2*l1*tau2*Math.cos(q1 - q2) - 2*l2*tau1 + g*l1*l2*m2*Math.sin(q1 - 2*q2) + dq1*dq1*l1*l1*l2*m2*Math.sin(2*q1 - 2*q2) + 2*dq2*dq2*l1*l2*l2*m2*Math.sin(q1 - q2) + 2*g*l1*l2*m1*Math.sin(q1) + g*l1*l2*m2*Math.sin(q1) - dq1*dq2*l1*l1*l2*m2*Math.sin(2*q1 - 2*q2) - 2*dq1*dq2*l1*l2*l2*m2*Math.sin(q1 - q2))/(l1*l1*l2*(2*m1 + m2 - m2*Math.cos(2*q1 - 2*q2)));
+    var d2th2 = (2*l1*m1*tau2 + 2*l1*m2*tau2 - 2*l2*m2*tau1*Math.cos(q1 - q2) + 2*dq1*dq1*l1*l1*l2*m2*m2*Math.sin(q1 - q2) - g*l1*l2*m2*m2*Math.sin(q2) + dq2*dq2*l1*l2*l2*m2*m2*Math.sin(2*q1 - 2*q2) + g*l1*l2*m2*m2*Math.sin(2*q1 - q2) - 2*dq1*dq2*l1*l1*l2*m2*m2*Math.sin(q1 - q2) + 2*dq1*dq1*l1*l1*l2*m1*m2*Math.sin(q1 - q2) - g*l1*l2*m1*m2*Math.sin(q2) - dq1*dq2*l1*l2*l2*m2*m2*Math.sin(2*q1 - 2*q2) + g*l1*l2*m1*m2*Math.sin(2*q1 - q2) - 2*dq1*dq2*l1*l1*l2*m1*m2*Math.sin(q1 - q2))/(l1*l2*l2*m2*(2*m1 + m2 - m2*Math.cos(2*q1 - 2*q2)));
 
     var dx = [
       x[1],
@@ -244,8 +245,6 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.step = function() {
     var self = this;
 
-    console.log(this.pendulum.l2);
-
     var dt = this.dt / this.tscale;
     this.t += dt;
     this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, dt);
@@ -290,6 +289,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'black';
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.lineWidth = 3;
 
     ctx.clearRect(0, 0, 800, 600);
