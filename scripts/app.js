@@ -84,8 +84,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var l2 = p.l2;
     var g = p.g;
 
-    var d2th1 = -(2*l1*tau2*Math.cos(q1 - q2) - 2*l2*tau1 + g*l1*l2*m2*Math.sin(q1 - 2*q2) + dq1*dq1*l1*l1*l2*m2*Math.sin(2*q1 - 2*q2) + 2*dq2*dq2*l1*l2*l2*m2*Math.sin(q1 - q2) + 2*g*l1*l2*m1*Math.sin(q1) + g*l1*l2*m2*Math.sin(q1) - dq1*dq2*l1*l1*l2*m2*Math.sin(2*q1 - 2*q2) - 2*dq1*dq2*l1*l2*l2*m2*Math.sin(q1 - q2))/(l1*l1*l2*(2*m1 + m2 - m2*Math.cos(2*q1 - 2*q2)));
-    var d2th2 = (2*l1*m1*tau2 + 2*l1*m2*tau2 - 2*l2*m2*tau1*Math.cos(q1 - q2) + 2*dq1*dq1*l1*l1*l2*m2*m2*Math.sin(q1 - q2) - g*l1*l2*m2*m2*Math.sin(q2) + dq2*dq2*l1*l2*l2*m2*m2*Math.sin(2*q1 - 2*q2) + g*l1*l2*m2*m2*Math.sin(2*q1 - q2) - 2*dq1*dq2*l1*l1*l2*m2*m2*Math.sin(q1 - q2) + 2*dq1*dq1*l1*l1*l2*m1*m2*Math.sin(q1 - q2) - g*l1*l2*m1*m2*Math.sin(q2) - dq1*dq2*l1*l2*l2*m2*m2*Math.sin(2*q1 - 2*q2) + g*l1*l2*m1*m2*Math.sin(2*q1 - q2) - 2*dq1*dq2*l1*l1*l2*m1*m2*Math.sin(q1 - q2))/(l1*l2*l2*m2*(2*m1 + m2 - m2*Math.cos(2*q1 - 2*q2)));
+    var d2th1 = (-g * (2*m1 + m2) * Math.sin(q1) -m2*g*Math.sin(q1 - 2*q2) -2*Math.sin(q1-q2)*m2*(dq2*dq2*l2 + dq1*dq1*l1*Math.cos(q1-q2))) / (l1*(2*m1+m2-m2*Math.cos(2*q1-2*q2)));
+    var d2th2 = (2*Math.sin(q1-q2) * (dq1*dq1*l1*(m1+m2) + g*(m1+m2)*Math.cos(q1) + dq2*dq2*l2*m2*Math.cos(q1-q2))) / (l2*(2*m1+m2-m2*Math.cos(2*q1-2*q2)));
 
     var dx = [
       x[1],
@@ -231,6 +231,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.calculateEnergy = function(x, p) {
     var Ek = 0.5 * (p.m1 + p.m2) * p.l1 * p.l1 * x[1] * x[1] + 0.5 * p.m2 * p.l2 * x[3] * x[3]
       + p.m2 * p.l1 * p.l2 * x[1] * x[3] * Math.cos(x[0] - x[2]);
+      //var Ek = (p.m1*(dq1*dq1*p.l1*p.l1*Math.cos(q1)*Math.cos(q1) + dq1*dq1*p.l1*p.l1*Math.sin(q1)*Math.sin(q1)))/2
+        //+ (p.m2*(Math.pow(dq1*p.l1*Math.cos(q1) + dq2*p.l2*Math.cos(q2), 2)
+        //+ Math.pow(dq1*p.l1*Math.sin(q1) + dq2*p.l2*Math.sin(q2), 2)))/2;
     var Ep = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(x[0]) - p.m2 * p.g * p.l2 * Math.cos(x[2]);
     var E = Ek + Ep;
 
