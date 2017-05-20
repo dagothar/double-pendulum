@@ -11,16 +11,16 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
 
   function App() {
-    this._t = 0.0;
+    this.t = 0.0;
 
-    this._x = [
-      2.0,    // theta1
+    this.x = [
+      3.0,    // theta1
       0.0,    // dtheta1
-      2.0,    // theta2
+      3.0,    // theta2
       0.0     // dtheta2
     ];
 
-    this._pendulum = {
+    this.pendulum = {
       m1:   1.0,
       m2:   1.0,
       l1:   1.0,
@@ -28,14 +28,14 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       g:    9.81
     };
 
-    this._solver            = new rk4.RK4();
-    this._running           = false;
-    this._interval          = undefined;
+    this.solver            = new rk4.RK4();
+    this.running           = false;
+    this.interval          = undefined;
 
-    this._viewContainer     = undefined;
-    this._view              = undefined;
-    this._pendulumLayer     = undefined;
-    this._traceLayer        = undefined;
+    this.viewContainer     = undefined;
+    this.view              = undefined;
+    this.pendulumLayer     = undefined;
+    this.traceLayer        = undefined;
   };
 
 
@@ -68,26 +68,26 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
-  App.prototype._initialize = function() {
+  App.prototype.initialize = function() {
     var self = this;
 
     // create view
-    this._viewContainer = $(CONFIG.VIEW_ID).get(0);
-    this._view = new Concrete.Viewport({
-      container: this._viewContainer,
+    this.viewContainer = $(CONFIG.VIEW_ID).get(0);
+    this.view = new Concrete.Viewport({
+      container: this.viewContainer,
       width: CONFIG.VIEW_WIDTH,
       height: CONFIG.VIEW_HEIGHT
     });
-    this._pendulumLayer   = new Concrete.Layer();
-    this._traceLayer      = new Concrete.Layer();
-    this._view            .add(this._pendulumLayer).add(this._traceLayer);
+    this.pendulumLayer   = new Concrete.Layer();
+    this.traceLayer      = new Concrete.Layer();
+    this.view            .add(this.traceLayer).add(this.pendulumLayer);
 
-    $('.button-start').click(function() { self._start(); });
-    $('.button-stop').click(function() { self._stop(); });
+    $('.button-start').click(function() { self.start(); });
+    $('.button-stop').click(function() { self.stop(); });
   };
 
 
-  App.prototype._drawPendulum = function(ctx, x, p) {
+  App.prototype.drawPendulum = function(ctx, x, p) {
     var x1 = p.l1 * Math.sin(x[0]);
     var y1 = p.l1 * Math.cos(x[0]);
     var x2 = x1 + p.l2 * Math.sin(x[2]);
@@ -120,41 +120,35 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
-  App.prototype._step = function() {
+  App.prototype.step = function() {
     var self = this;
 
-    this._t += 0.01;
-    this._x = this._solver.solve(function(t, u, x) { return model(t, u, x, self._pendulum); }, this._t, [0, 0], this._x, 0.01);
+    this.t += 0.01;
+    this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, 0.01);
 
-    this._drawPendulum(this._traceLayer.scene.context, this._x, this._pendulum);
+    this.drawPendulum(this.traceLayer.scene.context, this.x, this.pendulum);
   };
 
 
-  App.prototype._start = function() {
+  App.prototype.start = function() {
     var self = this;
 
-    if (!this._running) {
-      this._running = true;
-      clearInterval(this._interval);
-      this._interval = setInterval(function() { self._step(); }, 10);
+    if (!this.running) {
+      this.running = true;
+      clearInterval(this.interval);
+      this.interval = setInterval(function() { self.step(); }, 10);
     }
   };
 
 
-  App.prototype._stop = function() {
-    this._running = false;
-    clearInterval(this._interval);
-    console.log('!');
+  App.prototype.stop = function() {
+    this.running = false;
+    clearInterval(this.interval);
   };
 
 
   App.prototype.run = function() {
-    this._initialize();
-  };
-
-
-  App.prototype._update = function() {
-
+    this.initialize();
   };
 
 
