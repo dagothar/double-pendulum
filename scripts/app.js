@@ -34,11 +34,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.distance = 0.0;
 
     this.x0 = [
-      3.14,    // theta1
+      3.1,    // theta1
       0.0,    // dtheta1
       3.14,    // theta2
       0.0     // dtheta2
     ];
+    this.startx = this.x0;
     this.x = this.x0;
 
     this.position = undefined;
@@ -62,6 +63,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.pendulumLayer     = undefined;
     this.traceLayer        = undefined;
     this.gridLayer         = undefined;
+    this.traceColor        = 'red';
   };
 
 
@@ -91,12 +93,26 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
-  function getMousePos(e, client) {
+  var getMousePos = function(e, client) {
     var rect = client.getBoundingClientRect();
     return {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     };
+  };
+
+
+  var randomColor = function() {
+    var r = Math.floor(256 * Math.random());
+    var g = Math.floor(256 * Math.random());
+    var b = Math.floor(256 * Math.random());
+
+    var max = r > g ? (r > b ? r : b) : (g > b ? g : b);
+    r *= 255 / max;
+    g *= 255 / max;
+    b *= 255 / max;
+
+    return 'rgb(' + r.toFixed(0) + ', ' + g.toFixed(0) + ', ' + b.toFixed(0) + ')';
   };
 
 
@@ -183,7 +199,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     ctx.closePath();
     ctx.stroke();*/
 
-    ctx.strokeStyle = 'red';
+    ctx.strokeStyle = this.traceColor;
     ctx.beginPath();
     ctx.moveTo(prevPos.x2*CONFIG.VIEW_SCALE, prevPos.y2*CONFIG.VIEW_SCALE);
     ctx.lineTo(pos.x2*CONFIG.VIEW_SCALE, pos.y2*CONFIG.VIEW_SCALE);
@@ -244,6 +260,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.previousPosition = this.position;
     this.energy = this.calculateEnergy(this.x, this.pendulum);
+    this.traceColor = randomColor();
     this.update();
   };
 
