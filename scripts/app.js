@@ -3,10 +3,14 @@
 define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
   const CONFIG = {
-    VIEW_ID:      '#view',
-    VIEW_WIDTH:   800,
-    VIEW_HEIGHT:  600,
-    VIEW_SCALE:   100
+    VIEW_ID:        '#view',
+    VIEW_WIDTH:     800,
+    VIEW_HEIGHT:    600,
+    VIEW_SCALE:     100,
+    BTN_HIDDEN_ID:  '.button-hidden',
+    BTN_START_ID:   '.button-start',
+    BTN_STOP_ID:    '.button-stop',
+    VIEW_BOB_SIZE:  5
   };
 
 
@@ -19,6 +23,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       3.0,    // theta2
       0.0     // dtheta2
     ];
+
+    this.position = undefined;
+    this.previousPosition = undefined;
 
     this.pendulum = {
       m1:   1.0,
@@ -36,6 +43,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.view              = undefined;
     this.pendulumLayer     = undefined;
     this.traceLayer        = undefined;
+    this.gridLayer         = undefined;
   };
 
 
@@ -76,45 +84,91 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     });
     this.pendulumLayer   = new Concrete.Layer();
     this.traceLayer      = new Concrete.Layer();
-    this.view            .add(this.traceLayer).add(this.pendulumLayer);
+    this.gridLayer       = new Concrete.Layer();
+    this.view            .add(this.gridLayer).add(this.traceLayer).add(this.pendulumLayer);
 
-    $('.button-start').click(function() { self.start(); });
-    $('.button-stop').click(function() { self.stop(); });
+    $(CONFIG.BTN_START_ID).click(function() { self.start(); });
+    $(CONFIG.BTN_STOP_ID).click(function() { self.stop(); });
 
+    $(CONFIG.BTN_START_ID).show();
+    $(CONFIG.BTN_STOP_ID).hide();
+
+    this.position = this.calculatePosition(this.x, this.pendulum);
     this.update();
   };
 
 
-  App.prototype.drawPendulum = function(ctx, x, p) {
+  App.prototype.drawPendulum = function(ctx, position) {
+    var x1 = position.x1;
+    var y1 = position.y1;
+    var x2 = position.x2;
+    var y2 = position.y2;
+
+    ctx.save();
+    ctx.fillStyle = 'black';
+    ctx.strokeStyle = 'black';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 3;
+
+    ctx.clearRect(0, 0, 800, 600);
+    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
+    ctx.beginPath();
+    ctx.arc(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE, CONFIG.VIEW_BOB_SIZE, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x2*CONFIG.VIEW_SCALE, y2*CONFIG.VIEW_SCALE, CONFIG.VIEW_BOB_SIZE, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE);
+    ctx.lineTo(x2*CONFIG.VIEW_SCALE,y2*CONFIG.VIEW_SCALE);
+    ctx.stroke();
+    ctx.restore();
+  };
+
+
+  App.prototype.drawTrace = function(ctx, prevPos, pos) {
+    if (!prevPos || !pos) return;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
+
+    ctx.strokeStyle = 'blue';
+    ctx.beginPath();
+    ctx.moveTo(prevPos.x1*CONFIG.VIEW_SCALE, prevPos.y1*CONFIG.VIEW_SCALE);
+    ctx.lineTo(pos.x1*CONFIG.VIEW_SCALE, pos.y1*CONFIG.VIEW_SCALE);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'red';
+    ctx.beginPath();
+    ctx.moveTo(prevPos.x2*CONFIG.VIEW_SCALE, prevPos.y2*CONFIG.VIEW_SCALE);
+    ctx.lineTo(pos.x2*CONFIG.VIEW_SCALE, pos.y2*CONFIG.VIEW_SCALE);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  };
+
+
+  App.prototype.calculatePosition = function(x, p) {
     var x1 = p.l1 * Math.sin(x[0]);
     var y1 = p.l1 * Math.cos(x[0]);
     var x2 = x1 + p.l2 * Math.sin(x[2]);
     var y2 = y1 + p.l2 * Math.cos(x[2]);
 
-    ctx.fillStyle = 'black';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 3;
-
-    ctx.save();
-    ctx.clearRect(0, 0, 800, 600);
-    ctx.beginPath();
-    ctx.arc(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2, 5, 0, 2*Math.PI);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(CONFIG.VIEW_WIDTH/2+x1*CONFIG.VIEW_SCALE, CONFIG.VIEW_HEIGHT/2+y1*CONFIG.VIEW_SCALE, 5, 0, 2*Math.PI);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(CONFIG.VIEW_WIDTH/2+x2*CONFIG.VIEW_SCALE, CONFIG.VIEW_HEIGHT/2+y2*CONFIG.VIEW_SCALE, 5, 0, 2*Math.PI);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
-    ctx.lineTo(CONFIG.VIEW_WIDTH/2+x1*CONFIG.VIEW_SCALE, CONFIG.VIEW_HEIGHT/2+y1*CONFIG.VIEW_SCALE);
-    ctx.lineTo(CONFIG.VIEW_WIDTH/2+x2*CONFIG.VIEW_SCALE, CONFIG.VIEW_HEIGHT/2+y2*CONFIG.VIEW_SCALE);
-    ctx.stroke();
-    ctx.restore();
+    return {
+      x1: x1,
+      y1: y1,
+      x2: x2,
+      y2: y2
+    };
   };
 
 
@@ -123,13 +177,16 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
     this.t += 0.01;
     this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, 0.01);
+    this.previousPosition = this.position;
+    this.position = this.calculatePosition(this.x, this.pendulum);
 
     this.update();
   };
 
 
   App.prototype.update = function() {
-    this.drawPendulum(this.traceLayer.scene.context, this.x, this.pendulum);
+    this.drawPendulum(this.pendulumLayer.scene.context, this.position);
+    this.drawTrace(this.traceLayer.scene.context, this.previousPosition, this.position);
   };
 
 
@@ -141,12 +198,18 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       clearInterval(this.interval);
       this.interval = setInterval(function() { self.step(); }, 10);
     }
+
+    $(CONFIG.BTN_START_ID).hide();
+    $(CONFIG.BTN_STOP_ID).show();
   };
 
 
   App.prototype.stop = function() {
     this.running = false;
     clearInterval(this.interval);
+
+    $(CONFIG.BTN_START_ID).show();
+    $(CONFIG.BTN_STOP_ID).hide();
   };
 
 

@@ -11,6 +11,14 @@ input { width: 100%; }
   /*border: 1px solid #333;*/
 }
 
+.button-start {
+  margin: 0;
+}
+
+.button-stop {
+  margin: 0;
+}
+
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
