@@ -29,7 +29,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     L1_ID:          '.length1',
     L2_ID:          '.length2',
     SLIDER_B_ID:    '.slider-damping',
-    DAMPING_ID:     '.damping'
+    DAMPING_ID:     '.damping',
+    MAX_LENGTH:     2.4
   };
 
 
@@ -162,10 +163,22 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       self.pendulum.m2 = $(this).val();
     });
     $(CONFIG.L1_ID).on('input change', function() {
-      self.pendulum.l1 = $(this).val();
+      var l = parseFloat($(this).val());
+      var length = self.pendulum.l2 + l;
+      if (length <= CONFIG.MAX_LENGTH) {
+        self.pendulum.l1 = l;
+      } else {
+        $(this).val(self.pendulum.l1);
+      }
     });
     $(CONFIG.L2_ID).on('input change', function() {
-      self.pendulum.l2 = $(this).val();
+      var l = parseFloat($(this).val());
+      var length = self.pendulum.l1 + l;
+      if (length <= CONFIG.MAX_LENGTH) {
+        self.pendulum.l2 = l;
+      } else {
+        $(this).val(self.pendulum.l2);
+      }
     });
 
     $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
@@ -263,10 +276,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.calculateEnergy = function(x, p) {
     var Ek = 0.5 * (p.m1 + p.m2) * p.l1 * p.l1 * x[1] * x[1] + 0.5 * p.m2 * p.l2 * x[3] * x[3]
       + p.m2 * p.l1 * p.l2 * x[1] * x[3] * Math.cos(x[0] - x[2]);
-      //var Ek = (p.m1*(dq1*dq1*p.l1*p.l1*Math.cos(q1)*Math.cos(q1) + dq1*dq1*p.l1*p.l1*Math.sin(q1)*Math.sin(q1)))/2
-        //+ (p.m2*(Math.pow(dq1*p.l1*Math.cos(q1) + dq2*p.l2*Math.cos(q2), 2)
-        //+ Math.pow(dq1*p.l1*Math.sin(q1) + dq2*p.l2*Math.sin(q2), 2)))/2;
-    var Epmin = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(0) - p.m2 * p.g * p.l2 * Math.cos(0);
+    var Epmin = - (p.m1 + p.m2) * p.g * p.l1 - p.m2 * p.g * p.l2;
     var Ep = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(x[0]) - p.m2 * p.g * p.l2 * Math.cos(x[2]) - Epmin;
     var E = Ek + Ep;
 
