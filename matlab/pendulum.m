@@ -54,6 +54,10 @@ d2q2 = simplify(d2q2)
 
 %% Save to file
 fid = fopen('equations.txt', 'wt');
+T = subs(T, {th1, dth1, th2, dth2}, {q1 dq1, q2, dq2});
+U = subs(U, {th1, dth1, th2, dth2}, {q1 dq1, q2, dq2});
 fprintf(fid, 'd2q1 = %s\n', char(d2q1));
 fprintf(fid, 'd2q2 = %s\n', char(d2q2));
+fprintf(fid, 'T = %s\n', char(T));
+fprintf(fid, 'U = %s\n', char(U));
 fclose(fid);
