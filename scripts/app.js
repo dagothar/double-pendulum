@@ -23,7 +23,11 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     SLIDER_DT_ID:   '.slider-dt',
     DT_ID:          '.dt',
     VIEW_BOB_SIZE:  5,
-    SIM_DT:         0.01
+    SIM_DT:         0.01,
+    M1_ID:          '.mass1',
+    M2_ID:          '.mass2',
+    L1_ID:          '.length1',
+    L2_ID:          '.length2',
   };
 
 
@@ -93,6 +97,16 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
+  var jacobian = function(x, p) {
+    return {
+      dxdth1: p.l1 * Math.cos(x[0]),
+      dxdth2: p.l2 * Math.cos(x[2]),
+      dydth1: -p.l1 * Math.sin(x[0]),
+      dydth2: -p.l2 * Math.sin(x[2])
+    };
+  };
+
+
   var getMousePos = function(e, client) {
     var rect = client.getBoundingClientRect();
     return {
@@ -130,6 +144,18 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
         self.tscale = Math.pow(1.03271, 100-$(this).val());
         self.update();
     });
+    $(CONFIG.M1_ID).on('input change', function() {
+      self.pendulum.m1 = $(this).val();
+    });
+    $(CONFIG.M2_ID).on('input change', function() {
+      self.pendulum.m2 = $(this).val();
+    });
+    $(CONFIG.L1_ID).on('input change', function() {
+      self.pendulum.l1 = $(this).val();
+    });
+    $(CONFIG.L2_ID).on('input change', function() {
+      self.pendulum.l2 = $(this).val();
+    });
 
     $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
 
@@ -139,75 +165,6 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.energy = this.calculateEnergy(this.x, this.pendulum);
     this.update();
-  };
-
-
-  App.prototype.drawPendulum = function(ctx, position) {
-    var x1 = position.x1;
-    var y1 = position.y1;
-    var x2 = position.x2;
-    var y2 = position.y2;
-
-    ctx.save();
-    ctx.fillStyle = 'black';
-    ctx.strokeStyle = 'black';
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 3;
-
-    ctx.clearRect(0, 0, 800, 600);
-    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
-    ctx.beginPath();
-    ctx.arc(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE, CONFIG.VIEW_BOB_SIZE, 0, 2*Math.PI);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x2*CONFIG.VIEW_SCALE, y2*CONFIG.VIEW_SCALE, CONFIG.VIEW_BOB_SIZE, 0, 2*Math.PI);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE);
-    ctx.lineTo(x2*CONFIG.VIEW_SCALE,y2*CONFIG.VIEW_SCALE);
-    ctx.stroke();
-    ctx.restore();
-  };
-
-
-  App.prototype.drawTrace = function(ctx, prevPos, pos) {
-    if (!prevPos || !pos) return;
-
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
-    ctx.lineWidth = 2;
-
-    ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
-    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
-
-    /*ctx.strokeStyle = 'blue';
-    ctx.beginPath();
-    ctx.moveTo(prevPos.x1*CONFIG.VIEW_SCALE, prevPos.y1*CONFIG.VIEW_SCALE);
-    ctx.lineTo(pos.x1*CONFIG.VIEW_SCALE, pos.y1*CONFIG.VIEW_SCALE);
-    ctx.closePath();
-    ctx.stroke();*/
-
-    ctx.strokeStyle = this.traceColor;
-    ctx.beginPath();
-    ctx.moveTo(prevPos.x2*CONFIG.VIEW_SCALE, prevPos.y2*CONFIG.VIEW_SCALE);
-    ctx.lineTo(pos.x2*CONFIG.VIEW_SCALE, pos.y2*CONFIG.VIEW_SCALE);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  };
-
-
-  App.prototype.jacobian = function(x, p) {
-    return {
-      dxdth1: p.l1 * Math.cos(x[0]),
-      dxdth2: p.l2 * Math.cos(x[2]),
-      dydth1: -p.l1 * Math.sin(x[0]),
-      dydth2: -p.l2 * Math.sin(x[2])
-    };
   };
 
 
@@ -225,14 +182,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       var dy = desiredPos.y - position.y2;
       error = Math.sqrt(dx*dx + dy*dy);
 
-      var J = this.jacobian(x, p);
+      var J = jacobian(x, p);
       var dth1 = J.dxdth1 * dx + J.dydth1 * dy;
       var dth2 = J.dxdth2 * dx + J.dydth2 * dy;
 
       x[0] = x[0] + alpha * dth1;
       x[2] = x[2] + alpha * dth2;
-
-      console.log(error);
 
       ++iter;
     } while (error > epsilon && iter < maxIter);
@@ -289,6 +244,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.step = function() {
     var self = this;
 
+    console.log(this.pendulum.l2);
+
     var dt = this.dt / this.tscale;
     this.t += dt;
     this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, dt);
@@ -320,6 +277,58 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.EPOTENTIAL_ID).text(this.energy.Ep.toFixed(2) + ' J');
     $(CONFIG.ETOTAL_ID).text(this.energy.E.toFixed(2) + ' J');
     $(CONFIG.DT_ID).text((1/this.tscale).toFixed(2) + 'x');
+  };
+
+
+  App.prototype.drawPendulum = function(ctx, position) {
+    var x1 = position.x1;
+    var y1 = position.y1;
+    var x2 = position.x2;
+    var y2 = position.y2;
+
+    ctx.save();
+    ctx.fillStyle = 'black';
+    ctx.strokeStyle = 'black';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 3;
+
+    ctx.clearRect(0, 0, 800, 600);
+    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
+    ctx.beginPath();
+    ctx.arc(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE, CONFIG.VIEW_BOB_SIZE, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x2*CONFIG.VIEW_SCALE, y2*CONFIG.VIEW_SCALE, CONFIG.VIEW_BOB_SIZE, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE);
+    ctx.lineTo(x2*CONFIG.VIEW_SCALE,y2*CONFIG.VIEW_SCALE);
+    ctx.stroke();
+    ctx.restore();
+  };
+
+
+  App.prototype.drawTrace = function(ctx, prevPos, pos) {
+    if (!prevPos || !pos) return;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
+
+    ctx.strokeStyle = this.traceColor;
+    ctx.beginPath();
+    ctx.moveTo(prevPos.x2*CONFIG.VIEW_SCALE, prevPos.y2*CONFIG.VIEW_SCALE);
+    ctx.lineTo(pos.x2*CONFIG.VIEW_SCALE, pos.y2*CONFIG.VIEW_SCALE);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
   };
 
 
