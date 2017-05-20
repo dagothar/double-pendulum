@@ -24,32 +24,8 @@
   <div class="container-full">
     <div class="row">
 
-      <!-- VIEW -->
-      <div class="col-md-8">
-        <div class="canvas-container" id="view"></div>
-      </div>
-
-
-      <!-- SIDE PANEL -->
-      <div class="col-md-3">
-
-        <div class="panel panel-default">
-          <div class="panel-heading">Controls</div>
-          <div class="panel-body">
-
-            <!-- reset simulation button -->
-            <div class="form-group col-md-12">
-              <button type="button" class="button-reset btn btn-default btn-block">Reset simulation <span class="glyphicon glyphicon-off"></span></button>
-            </div>
-
-            <!-- start/stop simulation button -->
-            <div class="form-group col-md-12">
-              <button type="button" class="button-start btn btn-default btn-block">Start simulation <span class="glyphicon glyphicon-play"></span></button>
-              <button type="button" class="button-stop btn btn-default btn-block">Stop simulation <span class="glyphicon glyphicon-stop"></span></button>
-            </div>
-
-          </div>
-        </div>
+      <!-- LEFT SIDE BAR -->
+      <div class="col-md-2 col-md-offset-1">
 
         <div class="panel panel-default">
           <div class="panel-heading">Info</div>
@@ -62,6 +38,37 @@
             <p>E<sub>k</sub>: <span class="ekinetic text-danger pull-right">0 J</span></p>
             <p>E<sub>p</sub>: <span class="epotential text-danger pull-right">0 J</span></p>
             <p>E<sub>total</sub>: <span class="etotal text-danger pull-right">0 J</span></p>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VIEW -->
+      <div class="col-md-6">
+        <div class="canvas-container" id="view"></div>
+      </div>
+
+
+      <!-- RIGHT SIDE BAR -->
+      <div class="col-md-2">
+
+        <div class="panel panel-default">
+          <div class="panel-heading">Controls</div>
+          <div class="panel-body">
+
+            <!-- reset simulation button -->
+            <div class="form-group col-md-12">
+              <button type="button" class="button-reset btn btn-default btn-block">Reset <span class="glyphicon glyphicon-off"></span></button>
+            </div>
+
+            <!-- start/stop simulation button -->
+            <div class="button-start-div form-group col-md-12">
+              <button type="button" class="button-start btn btn-default btn-block">Start <span class="glyphicon glyphicon-play"></span></button>
+            </div>
+            <div class="button-stop-div form-group col-md-12">
+              <button type="button" class="button-stop btn btn-default btn-block">Stop <span class="glyphicon glyphicon-stop"></span></button>
+            </div>
 
           </div>
         </div>
