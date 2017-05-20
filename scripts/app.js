@@ -28,6 +28,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     M2_ID:          '.mass2',
     L1_ID:          '.length1',
     L2_ID:          '.length2',
+    SLIDER_B_ID:    '.slider-damping',
+    DAMPING_ID:     '.damping'
   };
 
 
@@ -38,9 +40,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.distance = 0.0;
 
     this.x0 = [
-      3.1,    // theta1
+      3.14,    // theta1
       0.0,    // dtheta1
-      3.14,    // theta2
+      3.141,    // theta2
       0.0     // dtheta2
     ];
     this.startx = this.x0;
@@ -55,8 +57,11 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       m2:   1.0,
       l1:   1.0,
       l2:   1.0,
-      g:    9.81
+      g:    9.81,
+      b:    0.0
     };
+
+    this.damping = 0.001;
 
     this.solver            = new rk4.RK4();
     this.running           = false;
@@ -83,9 +88,10 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var l1 = p.l1;
     var l2 = p.l2;
     var g = p.g;
+    var b = p.b;
 
-    var d2th1 = (-g * (2*m1 + m2) * Math.sin(q1) -m2*g*Math.sin(q1 - 2*q2) -2*Math.sin(q1-q2)*m2*(dq2*dq2*l2 + dq1*dq1*l1*Math.cos(q1-q2))) / (l1*(2*m1+m2-m2*Math.cos(2*q1-2*q2)));
-    var d2th2 = (2*Math.sin(q1-q2) * (dq1*dq1*l1*(m1+m2) + g*(m1+m2)*Math.cos(q1) + dq2*dq2*l2*m2*Math.cos(q1-q2))) / (l2*(2*m1+m2-m2*Math.cos(2*q1-2*q2)));
+    var d2th1 = (-g * (2*m1 + m2) * Math.sin(q1) -m2*g*Math.sin(q1 - 2*q2) -2*Math.sin(q1-q2)*m2*(dq2*dq2*l2 + dq1*dq1*l1*Math.cos(q1-q2))) / (l1*(2*m1+m2-m2*Math.cos(2*q1-2*q2))) - b * dq1;
+    var d2th2 = (2*Math.sin(q1-q2) * (dq1*dq1*l1*(m1+m2) + g*(m1+m2)*Math.cos(q1) + dq2*dq2*l2*m2*Math.cos(q1-q2))) / (l2*(2*m1+m2-m2*Math.cos(2*q1-2*q2)))  - b * dq1;
 
     var dx = [
       x[1],
@@ -145,6 +151,10 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
         self.tscale = Math.pow(1.03271, 100-$(this).val());
         self.update();
     });
+    $(CONFIG.SLIDER_B_ID).val(0).on('input change', function() {
+      self.pendulum.b = 0.01 * $(this).val();
+      self.update();
+    });
     $(CONFIG.M1_ID).on('input change', function() {
       self.pendulum.m1 = $(this).val();
     });
@@ -166,6 +176,28 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.energy = this.calculateEnergy(this.x, this.pendulum);
     this.update();
+  };
+
+
+  App.prototype.update = function() {
+    this.drawPendulum(this.pendulumLayer.scene.context, this.position);
+    this.drawTrace(this.traceLayer.scene.context, this.previousPosition, this.position);
+
+    $(CONFIG.TIME_ID).text(this.t.toFixed(2) + ' s');
+    $(CONFIG.DISTANCE_ID).text(this.distance.toFixed(2) + ' m');
+    $(CONFIG.POS1_ID).text(
+      '(' + this.position.x1.toFixed(2) + ', '
+      + this.position.y1.toFixed(2) + ') m'
+    );
+    $(CONFIG.POS2_ID).text(
+      '(' + this.position.x2.toFixed(2) + ', '
+      + this.position.y2.toFixed(2) + ') m'
+    );
+    $(CONFIG.EKINETIC_ID).text(this.energy.Ek.toFixed(2) + ' J');
+    $(CONFIG.EPOTENTIAL_ID).text(this.energy.Ep.toFixed(2) + ' J');
+    $(CONFIG.ETOTAL_ID).text(this.energy.E.toFixed(2) + ' J');
+    $(CONFIG.DT_ID).text((1/this.tscale).toFixed(2) + 'x');
+    $(CONFIG.DAMPING_ID).text(this.pendulum.b.toFixed(2));
   };
 
 
@@ -234,7 +266,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       //var Ek = (p.m1*(dq1*dq1*p.l1*p.l1*Math.cos(q1)*Math.cos(q1) + dq1*dq1*p.l1*p.l1*Math.sin(q1)*Math.sin(q1)))/2
         //+ (p.m2*(Math.pow(dq1*p.l1*Math.cos(q1) + dq2*p.l2*Math.cos(q2), 2)
         //+ Math.pow(dq1*p.l1*Math.sin(q1) + dq2*p.l2*Math.sin(q2), 2)))/2;
-    var Ep = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(x[0]) - p.m2 * p.g * p.l2 * Math.cos(x[2]);
+    var Epmin = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(0) - p.m2 * p.g * p.l2 * Math.cos(0);
+    var Ep = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(x[0]) - p.m2 * p.g * p.l2 * Math.cos(x[2]) - Epmin;
     var E = Ek + Ep;
 
     return {
@@ -258,27 +291,6 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.distance += dpos;
 
     this.update();
-  };
-
-
-  App.prototype.update = function() {
-    this.drawPendulum(this.pendulumLayer.scene.context, this.position);
-    this.drawTrace(this.traceLayer.scene.context, this.previousPosition, this.position);
-
-    $(CONFIG.TIME_ID).text(this.t.toFixed(2) + ' s');
-    $(CONFIG.DISTANCE_ID).text(this.distance.toFixed(2) + ' m');
-    $(CONFIG.POS1_ID).text(
-      '(' + this.position.x1.toFixed(2) + ', '
-      + this.position.y1.toFixed(2) + ') m'
-    );
-    $(CONFIG.POS2_ID).text(
-      '(' + this.position.x2.toFixed(2) + ', '
-      + this.position.y2.toFixed(2) + ') m'
-    );
-    $(CONFIG.EKINETIC_ID).text(this.energy.Ek.toFixed(2) + ' J');
-    $(CONFIG.EPOTENTIAL_ID).text(this.energy.Ep.toFixed(2) + ' J');
-    $(CONFIG.ETOTAL_ID).text(this.energy.E.toFixed(2) + ' J');
-    $(CONFIG.DT_ID).text((1/this.tscale).toFixed(2) + 'x');
   };
 
 
