@@ -12,6 +12,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     DIV_START_ID:   '.button-start-div',
     BTN_STOP_ID:    '.button-stop',
     DIV_STOP_ID:    '.button-stop-div',
+    BTN_CLEAR_ID:   '.button-clear',
     TIME_ID:        '.time',
     DISTANCE_ID:    '.distance',
     POS1_ID:        '.pos1',
@@ -19,12 +20,17 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     EKINETIC_ID:    '.ekinetic',
     EPOTENTIAL_ID:  '.epotential',
     ETOTAL_ID:      '.etotal',
-    VIEW_BOB_SIZE:  5
+    SLIDER_DT_ID:   '.slider-dt',
+    DT_ID:          '.dt',
+    VIEW_BOB_SIZE:  5,
+    SIM_DT:         0.01
   };
 
 
   function App() {
     this.t = 0.0;
+    this.dt = CONFIG.SIM_DT;
+    this.tscale = 1.0;
     this.distance = 0.0;
 
     this.x0 = [
@@ -102,6 +108,11 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.BTN_RESET_ID).click(function() { self.reset(); });
     $(CONFIG.BTN_START_ID).click(function() { self.start(); });
     $(CONFIG.BTN_STOP_ID).click(function() { self.stop(); });
+    $(CONFIG.BTN_CLEAR_ID).click(function() { self.clear(); });
+    $(CONFIG.SLIDER_DT_ID).val(100).on('input change', function() {
+        self.tscale = Math.pow(1.03271, 100-$(this).val());
+        self.update();
+    });
 
     $(CONFIG.DIV_START_ID).show();
     $(CONFIG.DIV_STOP_ID).hide();
@@ -203,8 +214,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.step = function() {
     var self = this;
 
-    this.t += 0.01;
-    this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, 0.01);
+    var dt = this.dt / this.tscale;
+    this.t += dt;
+    this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, dt);
     this.previousPosition = this.position;
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.energy = this.calculateEnergy(this.x, this.pendulum);
@@ -232,6 +244,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.EKINETIC_ID).text(this.energy.Ek.toFixed(2) + ' J');
     $(CONFIG.EPOTENTIAL_ID).text(this.energy.Ep.toFixed(2) + ' J');
     $(CONFIG.ETOTAL_ID).text(this.energy.E.toFixed(2) + ' J');
+    $(CONFIG.DT_ID).text((1/this.tscale).toFixed(2) + 'x');
   };
 
 
