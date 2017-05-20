@@ -90,9 +90,22 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var l2 = p.l2;
     var g = p.g;
     var b = p.b;
+    var sin = Math.sin;
+    var cos = Math.cos;
 
     var d2th1 = (-g * (2*m1 + m2) * Math.sin(q1) -m2*g*Math.sin(q1 - 2*q2) -2*Math.sin(q1-q2)*m2*(dq2*dq2*l2 + dq1*dq1*l1*Math.cos(q1-q2))) / (l1*(2*m1+m2-m2*Math.cos(2*q1-2*q2))) - b * dq1;
     var d2th2 = (2*Math.sin(q1-q2) * (dq1*dq1*l1*(m1+m2) + g*(m1+m2)*Math.cos(q1) + dq2*dq2*l2*m2*Math.cos(q1-q2))) / (l2*(2*m1+m2-m2*Math.cos(2*q1-2*q2)))  - b * dq1;
+
+    /*var d2th1 = -(2*l1*tau2*cos(q1 - q2) - 2*l2*tau1 + g*l1*l2*m2*sin(q1 - 2*q2)
+      + dq1*dq1*l1*l1*l2*m2*sin(2*q1 - 2*q2) + 2*dq2*dq2*l1*l2*l2*m2*sin(q1 - q2)
+      + ((2*m1+m2)* g*l1*l2)*sin(q1) - dq1*dq2*l1*l1*l2*m2*sin(2*q1 - 2*q2)
+      - 2*dq1*dq2*l1*l2*l2*m2*sin(q1 - q2))/(l1*l1*l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)));
+    var d2th2 = (2*l1*m1*tau2 + 2*l1*m2*tau2 - 2*l2*m2*tau1*cos(q1 - q2)
+      + 2*dq1*dq1*l1*l1*l2*m2*m2*sin(q1 - q2) - g*l1*l2*m2*m2*sin(q2)
+      + dq2*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2) + g*l1*l2*m2*m2*sin(2*q1 - q2)
+      - 2*dq1*dq2*l1*l1*l2*m2*m2*sin(q1 - q2) + 2*dq1*dq1*l1*l1*l2*m1*m2*sin(q1 - q2)
+      - g*l1*l2*m1*m2*sin(q2) - dq1*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2) + g*l1*l2*m1*m2*sin(2*q1 - q2)
+      - 2*dq1*dq2*l1*l1*l2*m1*m2*sin(q1 - q2))/(l1*l2*l2*m2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)));*/
 
     var dx = [
       x[1],
@@ -157,10 +170,10 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       self.update();
     });
     $(CONFIG.M1_ID).on('input change', function() {
-      self.pendulum.m1 = $(this).val();
+      self.pendulum.m1 = parseFloat($(this).val());
     });
     $(CONFIG.M2_ID).on('input change', function() {
-      self.pendulum.m2 = $(this).val();
+      self.pendulum.m2 = parseFloat($(this).val());
     });
     $(CONFIG.L1_ID).on('input change', function() {
       var l = parseFloat($(this).val());
@@ -189,6 +202,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.energy = this.calculateEnergy(this.x, this.pendulum);
     this.update();
+
+    this.drawGrid(this.gridLayer.scene.context);
+    this.clear();
   };
 
 
@@ -304,6 +320,28 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
+  App.prototype.drawGrid = function(ctx) {
+    ctx.save();
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1;
+    ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
+    for (var x = -3.5; x <= 3.21; x += 0.5) {
+      ctx.moveTo(x*CONFIG.VIEW_SCALE, -2.4*CONFIG.VIEW_SCALE);
+      ctx.lineTo(x*CONFIG.VIEW_SCALE, 2.4*CONFIG.VIEW_SCALE);
+      ctx.stroke();
+      //ctx.lineWidth == 1 ? ctx.lineWidth = 2.5 : ctx.lineWidth = 1;
+    }
+    for (var y = -2.5; y <= 2.41; y += 0.5) {
+      ctx.moveTo(-3.2*CONFIG.VIEW_SCALE, y*CONFIG.VIEW_SCALE);
+      ctx.lineTo(3.2*CONFIG.VIEW_SCALE, y*CONFIG.VIEW_SCALE);
+      ctx.stroke();
+      //ctx.lineWidth == 1 ? ctx.lineWidth = 5 : ctx.lineWidth = 1;
+    }
+    ctx.fill();
+    ctx.restore();
+  };
+
+
   App.prototype.drawPendulum = function(ctx, position) {
     var x1 = position.x1;
     var y1 = position.y1;
@@ -360,6 +398,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.clear = function() {
     var ctx = this.traceLayer.scene.context;
     ctx.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
   };
 
 
