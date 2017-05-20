@@ -47,15 +47,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var th2 =   x[2];
     var dth2 =  x[3];
 
-    var A = (p.m1 + p.m2) * p.l1 * p.l1;
-    var B = p.m2 * p.l1 * p.l1 * Math.cos(th1 - th2);
-    var C = p.m2 * p.l1 * p.l2 * Math.sin(th1-th2) * dth2 * dth2 + (p.m1 + p.m2) * p.g * p.l1 * Math.sin(th1) - tau1;
-    var D = p.m2 * p.l1 * p.l2 * Math.cos(th1 - th2);
-    var E = p.m2 * p.l2 * p.l2;
-    var F = -p.m2 * p.l1 * p.l2 * Math.sin(th1 - th2) * dth1 * dth1 + p.m2 * p.g * p.l2 * Math.sin(th2) - tau2;
-
-    var d2th1 = (C*E - B*F) / (B*D - A*E);
-    var d2th2 = (C*D - A*F) / (A*E - B*D);
+    var d2th1 = (-p.m2 * p.l2 * dth1 * dth1 * Math.sin(th1-th2) * Math.cos(th1-th2)  + p.g * p.m2 * Math.sin(th2) * Math.cos(th1-th2)
+      - p.m2 * p.l2 * dth2 * dth2 * Math.sin(th1-th2) - (p.m1 + p.m2) * p.g * Math.sin(th1)) / (p.l1 * (p.m1 + p.m2) - p.m2 * p.l1 *
+      Math.pow(Math.cos(th1-th2), 2));
+    var d2th2 = (p.m2 * p.l2 * dth2 * dth2 * Math.sin(th1-th2) * Math.cos(th1-th2) + p.g * Math.sin(th1) * Math.cos(th1-th2) * (p.m1 + p.m2)
+      + p.l1 * dth1 * dth1 * Math.sin(th1 - th2) * (p.m1 + p.m2) - p.g * Math.sin(th2) * (p.m1 + p.m2)) / (
+      p.l2 * (p.m1 + p.m2) - p.m2 * p.l2 * Math.pow(Math.cos(th1-th2), 2));
 
     var dx = [
       x[1],
@@ -71,7 +68,6 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.initialize = function() {
     var self = this;
 
-    // create view
     this.viewContainer = $(CONFIG.VIEW_ID).get(0);
     this.view = new Concrete.Viewport({
       container: this.viewContainer,
@@ -84,6 +80,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
     $('.button-start').click(function() { self.start(); });
     $('.button-stop').click(function() { self.stop(); });
+
+    this.update();
   };
 
 
@@ -126,6 +124,11 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.t += 0.01;
     this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, 0.01);
 
+    this.update();
+  };
+
+
+  App.prototype.update = function() {
     this.drawPendulum(this.traceLayer.scene.context, this.x, this.pendulum);
   };
 
