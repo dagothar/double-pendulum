@@ -91,6 +91,15 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
+  function getMousePos(e, client) {
+    var rect = client.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  };
+
+
   App.prototype.initialize = function() {
     var self = this;
 
@@ -113,6 +122,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
         self.tscale = Math.pow(1.03271, 100-$(this).val());
         self.update();
     });
+
+    $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
 
     $(CONFIG.DIV_START_ID).show();
     $(CONFIG.DIV_STOP_ID).hide();
@@ -159,7 +170,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
     ctx.save();
     ctx.lineCap = 'round';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
     ctx.lineWidth = 2;
 
     ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
@@ -179,6 +190,61 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     ctx.closePath();
     ctx.stroke();
     ctx.restore();
+  };
+
+
+  App.prototype.jacobian = function(x, p) {
+    return {
+      dxdth1: p.l1 * Math.cos(x[0]),
+      dxdth2: p.l2 * Math.cos(x[2]),
+      dydth1: -p.l1 * Math.sin(x[0]),
+      dydth2: -p.l2 * Math.sin(x[2])
+    };
+  };
+
+
+  App.prototype.invKin = function(state, desiredPos, p, alpha, epsilon, maxIter) {
+    var alpha = alpha || 0.1;
+    var epsilon = epsilon || 1e-3;
+    var maxIter = maxIter || 1000;
+    var x = state.slice();
+
+    var error = 0.0;
+    var iter = 0;
+    do {
+      var position = this.calculatePosition(x, p);
+      var dx = desiredPos.x - position.x2;
+      var dy = desiredPos.y - position.y2;
+      error = Math.sqrt(dx*dx + dy*dy);
+
+      var J = this.jacobian(x, p);
+      var dth1 = J.dxdth1 * dx + J.dydth1 * dy;
+      var dth2 = J.dxdth2 * dx + J.dydth2 * dy;
+
+      x[0] = x[0] + alpha * dth1;
+      x[2] = x[2] + alpha * dth2;
+
+      console.log(error);
+
+      ++iter;
+    } while (error > epsilon && iter < maxIter);
+
+    x[1] = 0.0;
+    x[3] = 0.0;
+
+    return x;
+  };
+
+
+  App.prototype.pullPendulum = function(e) {
+    var pos = getMousePos(e, $(CONFIG.VIEW_ID).get(0));
+    pos.x = (pos.x - CONFIG.VIEW_WIDTH/2)  / CONFIG.VIEW_SCALE;
+    pos.y = (pos.y - CONFIG.VIEW_HEIGHT/2)  / CONFIG.VIEW_SCALE;
+    this.x = this.invKin(this.x, pos, this.pendulum);
+    this.position = this.calculatePosition(this.x, this.pendulum);
+    this.previousPosition = this.position;
+    this.energy = this.calculateEnergy(this.x, this.pendulum);
+    this.update();
   };
 
 
