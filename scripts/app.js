@@ -4,28 +4,40 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
   const CONFIG = {
     VIEW_ID:        '#view',
-    VIEW_WIDTH:     800,
-    VIEW_HEIGHT:    600,
+    VIEW_WIDTH:     640,
+    VIEW_HEIGHT:    480,
     VIEW_SCALE:     100,
-    BTN_HIDDEN_ID:  '.button-hidden',
+    BTN_RESET_ID:   '.button-reset',
     BTN_START_ID:   '.button-start',
+    DIV_START_ID:   '.button-start-div',
     BTN_STOP_ID:    '.button-stop',
+    DIV_STOP_ID:    '.button-stop-div',
+    TIME_ID:        '.time',
+    DISTANCE_ID:    '.distance',
+    POS1_ID:        '.pos1',
+    POS2_ID:        '.pos2',
+    EKINETIC_ID:    '.ekinetic',
+    EPOTENTIAL_ID:  '.epotential',
+    ETOTAL_ID:      '.etotal',
     VIEW_BOB_SIZE:  5
   };
 
 
   function App() {
     this.t = 0.0;
+    this.distance = 0.0;
 
-    this.x = [
-      3.0,    // theta1
+    this.x0 = [
+      3.14,    // theta1
       0.0,    // dtheta1
-      3.0,    // theta2
+      3.14,    // theta2
       0.0     // dtheta2
     ];
+    this.x = this.x0;
 
     this.position = undefined;
     this.previousPosition = undefined;
+    this.energy = undefined;
 
     this.pendulum = {
       m1:   1.0,
@@ -87,13 +99,15 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.gridLayer       = new Concrete.Layer();
     this.view            .add(this.gridLayer).add(this.traceLayer).add(this.pendulumLayer);
 
+    $(CONFIG.BTN_RESET_ID).click(function() { self.reset(); });
     $(CONFIG.BTN_START_ID).click(function() { self.start(); });
     $(CONFIG.BTN_STOP_ID).click(function() { self.stop(); });
 
-    $(CONFIG.BTN_START_ID).show();
-    $(CONFIG.BTN_STOP_ID).hide();
+    $(CONFIG.DIV_START_ID).show();
+    $(CONFIG.DIV_STOP_ID).hide();
 
     this.position = this.calculatePosition(this.x, this.pendulum);
+    this.energy = this.calculateEnergy(this.x, this.pendulum);
     this.update();
   };
 
@@ -140,12 +154,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
     ctx.translate(CONFIG.VIEW_WIDTH/2, CONFIG.VIEW_HEIGHT/2);
 
-    ctx.strokeStyle = 'blue';
+    /*ctx.strokeStyle = 'blue';
     ctx.beginPath();
     ctx.moveTo(prevPos.x1*CONFIG.VIEW_SCALE, prevPos.y1*CONFIG.VIEW_SCALE);
     ctx.lineTo(pos.x1*CONFIG.VIEW_SCALE, pos.y1*CONFIG.VIEW_SCALE);
     ctx.closePath();
-    ctx.stroke();
+    ctx.stroke();*/
 
     ctx.strokeStyle = 'red';
     ctx.beginPath();
@@ -172,6 +186,20 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   };
 
 
+  App.prototype.calculateEnergy = function(x, p) {
+    var Ek = 0.5 * (p.m1 + p.m2) * p.l1 * p.l1 * x[1] * x[1] + 0.5 * p.m2 * p.l2 * x[3] * x[3]
+      + p.m2 * p.l1 * p.l2 * x[1] * x[3] * Math.cos(x[0] - x[2]);
+    var Ep = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(x[0]) - p.m2 * p.g * p.l2 * Math.cos(x[2]);
+    var E = Ek + Ep;
+
+    return {
+      Ek: Ek,
+      Ep: Ep,
+      E: E
+    };
+  };
+
+
   App.prototype.step = function() {
     var self = this;
 
@@ -179,6 +207,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, 0.01);
     this.previousPosition = this.position;
     this.position = this.calculatePosition(this.x, this.pendulum);
+    this.energy = this.calculateEnergy(this.x, this.pendulum);
+    var dpos = Math.sqrt(Math.pow(this.position.x2 - this.previousPosition.x2, 2) + Math.pow(this.position.y2 - this.previousPosition.y2, 2));
+    this.distance += dpos;
 
     this.update();
   };
@@ -187,6 +218,39 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.update = function() {
     this.drawPendulum(this.pendulumLayer.scene.context, this.position);
     this.drawTrace(this.traceLayer.scene.context, this.previousPosition, this.position);
+
+    $(CONFIG.TIME_ID).text(this.t.toFixed(2) + ' s');
+    $(CONFIG.DISTANCE_ID).text(this.distance.toFixed(2) + ' m');
+    $(CONFIG.POS1_ID).text(
+      '(' + this.position.x1.toFixed(2) + ', '
+      + this.position.y1.toFixed(2) + ') m'
+    );
+    $(CONFIG.POS2_ID).text(
+      '(' + this.position.x2.toFixed(2) + ', '
+      + this.position.y2.toFixed(2) + ') m'
+    );
+    $(CONFIG.EKINETIC_ID).text(this.energy.Ek.toFixed(2) + ' J');
+    $(CONFIG.EPOTENTIAL_ID).text(this.energy.Ep.toFixed(2) + ' J');
+    $(CONFIG.ETOTAL_ID).text(this.energy.E.toFixed(2) + ' J');
+  };
+
+
+  App.prototype.clear = function() {
+    var ctx = this.traceLayer.scene.context;
+    ctx.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+  };
+
+
+  App.prototype.reset = function() {
+    this.stop();
+    this.clear();
+    this.t = 0.0;
+    this.distance = 0.0;
+    this.x = this.x0;
+    this.position = this.calculatePosition(this.x, this.pendulum);
+    this.previousPosition = this.position;
+    this.energy = this.calculateEnergy(this.x, this.pendulum);
+    this.update();
   };
 
 
@@ -199,8 +263,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       this.interval = setInterval(function() { self.step(); }, 10);
     }
 
-    $(CONFIG.BTN_START_ID).hide();
-    $(CONFIG.BTN_STOP_ID).show();
+    $(CONFIG.DIV_START_ID).hide();
+    $(CONFIG.DIV_STOP_ID).show();
   };
 
 
@@ -208,8 +272,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.running = false;
     clearInterval(this.interval);
 
-    $(CONFIG.BTN_START_ID).show();
-    $(CONFIG.BTN_STOP_ID).hide();
+    $(CONFIG.DIV_START_ID).show();
+    $(CONFIG.DIV_STOP_ID).hide();
   };
 
 
