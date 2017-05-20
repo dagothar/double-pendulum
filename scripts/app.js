@@ -13,6 +13,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     BTN_STOP_ID:    '.button-stop',
     DIV_STOP_ID:    '.button-stop-div',
     BTN_CLEAR_ID:   '.button-clear',
+    BTN_IMAGE_ID:   '.button-download',
     TIME_ID:        '.time',
     DISTANCE_ID:    '.distance',
     POS1_ID:        '.pos1',
@@ -74,6 +75,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.traceLayer        = undefined;
     this.gridLayer         = undefined;
     this.traceColor        = 'red';
+
+    this.imageIndex = 0;
   };
 
 
@@ -161,6 +164,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.BTN_START_ID).click(function() { self.start(); });
     $(CONFIG.BTN_STOP_ID).click(function() { self.stop(); });
     $(CONFIG.BTN_CLEAR_ID).click(function() { self.clear(); });
+    $(CONFIG.BTN_IMAGE_ID).click(function() { self.download(self.imageIndex++); });
     $(CONFIG.SLIDER_DT_ID).val(100).on('input change', function() {
         self.tscale = Math.pow(1.03271, 100-$(this).val());
         self.update();
@@ -265,7 +269,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var pos = getMousePos(e, $(CONFIG.VIEW_ID).get(0));
     pos.x = (pos.x - CONFIG.VIEW_WIDTH/2)  / CONFIG.VIEW_SCALE;
     pos.y = (pos.y - CONFIG.VIEW_HEIGHT/2)  / CONFIG.VIEW_SCALE;
-    this.x = this.invKin(this.x, pos, this.pendulum);
+
+    var startx = [1, 0, 1.1, 0];
+    if (pos.x < 0)
+      startx = [-1, 0, -1.1, 0];
+
+    this.x = this.invKin(startx, pos, this.pendulum);
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.previousPosition = this.position;
     this.energy = this.calculateEnergy(this.x, this.pendulum);
@@ -413,6 +422,11 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.previousPosition = this.position;
     this.energy = this.calculateEnergy(this.x, this.pendulum);
     this.update();
+  };
+
+
+  App.prototype.download = function(i) {
+    this.view.toScene().download({ fileName: 'image' + i + '.png' });
   };
 
 
