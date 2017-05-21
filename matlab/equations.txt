@@ -1,4 +1,4 @@
-T = (dq1^2*l1^2*m1)/2 + (dq1^2*l1^2*m2)/2 + (dq2^2*l2^2*m2)/2 + dq1*dq2*l1*l2*m2*cos(q1 - q2)
-V = - g*m2*(l1*cos(q1) + l2*cos(q2)) - g*l1*m1*cos(q1)
-d2q1 = (2*g*m1*sin(q1) + g*m2*sin(q1) + g*m2*sin(q1 - 2*q2) - 2*dq2^2*l2*m2*sin(q1 - q2) - dq1^2*l1*m2*sin(2*q1 - 2*q2) + 2*dq1*dq2*l2*m2*sin(q1 - q2) + dq1*dq2*l1*m2*sin(2*q1 - 2*q2))/(l1*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)))
-d2q2 = (g*m1*sin(q2) + g*m2*sin(q2) - g*m1*sin(2*q1 - q2) - g*m2*sin(2*q1 - q2) + 2*dq1^2*l1*m1*sin(q1 - q2) + 2*dq1^2*l1*m2*sin(q1 - q2) + dq2^2*l2*m2*sin(2*q1 - 2*q2) - 2*dq1*dq2*l1*m1*sin(q1 - q2) - 2*dq1*dq2*l1*m2*sin(q1 - q2) - dq1*dq2*l2*m2*sin(2*q1 - 2*q2))/(l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)))
+T = (l1^2*m1*diff(th1(t), t)^2)/2 + (l1^2*m2*diff(th1(t), t)^2)/2 + (l2^2*m2*diff(th2(t), t)^2)/2 + l1*l2*m2*cos(th1(t) - th2(t))*diff(th1(t), t)*diff(th2(t), t)
+V = - g*m2*(l1*cos(th1(t)) + l2*cos(th2(t))) - g*l1*m1*cos(th1(t))
+d2q1 = -(g*m1*sin(q1) - cos(q1 - q2)*sin(q2) + g*m2*sin(q1) + dq2^2*l2*m2*sin(q1 - q2) + dq1^2*l1*m2*cos(q1 - q2)*sin(q1 - q2))/(l1*(m1 + m2 - m2*cos(q1 - q2)^2))
+d2q2 = (dq1^2*l1*m2^2*sin(q1 - q2) - m2*sin(q2) - m1*sin(q2) + g*m2^2*cos(q1 - q2)*sin(q1) + dq2^2*l2*m2^2*cos(q1 - q2)*sin(q1 - q2) + dq1^2*l1*m1*m2*sin(q1 - q2) + g*m1*m2*cos(q1 - q2)*sin(q1))/(l2*m2*(m1 + m2 - m2*cos(q1 - q2)^2))
