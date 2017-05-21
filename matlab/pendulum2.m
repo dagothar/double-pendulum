@@ -58,8 +58,8 @@ e1 = d_L_t1 - d_L_q1
 e2 = d_L_t2 - d_L_q2
 
 eqns = [
-    e1 == 0
-    e2 == 0
+    e1 == tau1
+    e2 == tau2
     ]
 
 %% Solve equations
