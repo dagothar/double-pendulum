@@ -96,19 +96,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var sin = Math.sin;
     var cos = Math.cos;
 
-    var d2th1 = (-g * (2*m1 + m2) * Math.sin(q1) -m2*g*Math.sin(q1 - 2*q2) -2*Math.sin(q1-q2)*m2*(dq2*dq2*l2 + dq1*dq1*l1*Math.cos(q1-q2))) / (l1*(2*m1+m2-m2*Math.cos(2*q1-2*q2))) - b * dq1;
-    var d2th2 = (2*Math.sin(q1-q2) * (dq1*dq1*l1*(m1+m2) + g*(m1+m2)*Math.cos(q1) + dq2*dq2*l2*m2*Math.cos(q1-q2))) / (l2*(2*m1+m2-m2*Math.cos(2*q1-2*q2)))  - b * dq1;
 
-    /*var d2th1 = -(2*l1*tau2*cos(q1 - q2) - 2*l2*tau1 + g*l1*l2*m2*sin(q1 - 2*q2)
-      + dq1*dq1*l1*l1*l2*m2*sin(2*q1 - 2*q2) + 2*dq2*dq2*l1*l2*l2*m2*sin(q1 - q2)
-      + ((2*m1+m2)* g*l1*l2)*sin(q1) - dq1*dq2*l1*l1*l2*m2*sin(2*q1 - 2*q2)
-      - 2*dq1*dq2*l1*l2*l2*m2*sin(q1 - q2))/(l1*l1*l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)));
-    var d2th2 = (2*l1*m1*tau2 + 2*l1*m2*tau2 - 2*l2*m2*tau1*cos(q1 - q2)
-      + 2*dq1*dq1*l1*l1*l2*m2*m2*sin(q1 - q2) - g*l1*l2*m2*m2*sin(q2)
-      + dq2*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2) + g*l1*l2*m2*m2*sin(2*q1 - q2)
-      - 2*dq1*dq2*l1*l1*l2*m2*m2*sin(q1 - q2) + 2*dq1*dq1*l1*l1*l2*m1*m2*sin(q1 - q2)
-      - g*l1*l2*m1*m2*sin(q2) - dq1*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2) + g*l1*l2*m1*m2*sin(2*q1 - q2)
-      - 2*dq1*dq2*l1*l1*l2*m1*m2*sin(q1 - q2))/(l1*l2*l2*m2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)));*/
+    var d2th1 = -(g*m1*sin(q1) + g*m2*sin(q1) + dq2*dq2*l2*m2*sin(q1 - q2) - g*m2*cos(q1 - q2)*sin(q2) + dq1*dq1*l1*m2*cos(q1 - q2)*sin(q1 - q2))/(l1*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2)));
+    var d2th2 = (g*m1*sin(2*q1 - q2) - g*m2*sin(q2) - g*m1*sin(q2) + g*m2*sin(2*q1 - q2) + 2*dq1*dq1*l1*m1*sin(q1 - q2) + 2*dq1*dq1*l1*m2*sin(q1 - q2) + dq2*dq2*l2*m2*sin(2*q1 - 2*q2))/(l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)));
 
     var dx = [
       x[1],
@@ -299,10 +289,21 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
 
   App.prototype.calculateEnergy = function(x, p) {
-    var Ek = 0.5 * (p.m1 + p.m2) * p.l1 * p.l1 * x[1] * x[1] + 0.5 * p.m2 * p.l2 * x[3] * x[3]
-      + p.m2 * p.l1 * p.l2 * x[1] * x[3] * Math.cos(x[0] - x[2]);
-    var Epmin = - (p.m1 + p.m2) * p.g * p.l1 - p.m2 * p.g * p.l2;
-    var Ep = - (p.m1 + p.m2) * p.g * p.l1 * Math.cos(x[0]) - p.m2 * p.g * p.l2 * Math.cos(x[2]) - Epmin;
+    var q1 = x[0];
+    var dq1 = x[1];
+    var q2 = x[2];
+    var dq2 = x[3];
+    var m1 = p.m1;
+    var m2 = p.m2;
+    var l1 = p.l1;
+    var l2 = p.l2;
+    var g = p.g;
+    var sin = Math.sin;
+    var cos = Math.cos;
+
+    var Ek = (dq1*dq1*l1*l1*m1)/2 + (dq1*dq1*l1*l1*m2)/2 + (dq2*dq2*l2*l2*m2)/2 + dq1*dq2*l1*l2*m2*cos(q1 - q2);
+    var Epmin = - g*m2*(l1 + l2) - g*l1*m1;
+    var Ep = - g*m2*(l1*cos(q1) + l2*cos(q2)) - g*l1*m1*cos(q1);
     var E = Ek + Ep;
 
     return {
