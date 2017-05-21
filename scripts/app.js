@@ -209,8 +209,13 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     });
     $(CONFIG.NUM_ID).val(this.n).on('input change', function() {
       var n = parseInt($(this).val());
-      if (n > 0 && n <= 10) self.n = n;
-      self.placePendulum(self.x[0], self.noise);
+      if (n > 0 && n <= 100) {
+        for (var i = self.n; i < n; ++i) {
+          self.placePendulum(i, self.x[0], self.noise);
+        }
+        self.n = n;
+        self.update();
+      }
     });
 
     $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
@@ -252,7 +257,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.DIV_START_ID).show();
     $(CONFIG.DIV_STOP_ID).hide();
 
-    this.placePendulum(this.x0, this.noise);
+    for (var i = 0; i < this.n; ++i)
+      this.placePendulum(i, this.x0, this.noise);
 
     for (var i = 0, n = this.n; i < n; ++i)
       this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
@@ -337,29 +343,30 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       startx = [-1, 0, -1.1, 0];
 
     this.x[0] = this.invKin(startx, pos, this.pendulum);
-    this.placePendulum(this.x[0], this.noise);
+
+    for (var i = 0; i < this.n; ++i)
+      this.placePendulum(i, this.x[0], this.noise);
+
+    this.update();
   };
 
 
-  App.prototype.placePendulum = function(x, noise) {
-    this.x[0] = x.slice();
-    this.position[0] = this.calculatePosition(this.x[0], this.pendulum);
-    this.previousPosition[0] = this.position[0];
-    this.energy = this.calculateEnergy(this.x[0], this.pendulum);
-    this.traceColor[0] = randomColor();
-
-
-    for (var i = 1; i < this.n; ++i) {
-      this.x[i] = this.x[0].slice();
-      this.x[i][0] += 2*noise*Math.random()-noise;
-      this.x[i][2] += 2*noise*Math.random()-noise;
-      this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
-      this.previousPosition[i] = this.position[i];
-      this.energy = this.calculateEnergy(this.x[i], this.pendulum);
-      this.traceColor[i] = randomColor();
+  App.prototype.placePendulum = function(idx, x, noise) {
+    if (idx == 0) {
+      this.x[0] = x.slice();
+      this.position[0] = this.calculatePosition(this.x[0], this.pendulum);
+      this.previousPosition[0] = this.position[0];
+      this.energy = this.calculateEnergy(this.x[0], this.pendulum);
+      this.traceColor[0] = randomColor();
+    } else {
+      this.x[idx] = x.slice();
+      this.x[idx][0] += 2*noise*Math.random()-noise;
+      this.x[idx][2] += 2*noise*Math.random()-noise;
+      this.position[idx] = this.calculatePosition(this.x[idx], this.pendulum);
+      this.previousPosition[idx] = this.position[idx];
+      this.energy = this.calculateEnergy(this.x[idx], this.pendulum);
+      this.traceColor[idx] = randomColor();
     }
-
-    this.update();
   };
 
 
