@@ -195,6 +195,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       var length = self.pendulum.l2 + l;
       if (length <= CONFIG.MAX_LENGTH) {
         self.pendulum.l1 = l;
+        self.update();
       } else {
         $(this).val(self.pendulum.l1);
       }
@@ -204,6 +205,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       var length = self.pendulum.l1 + l;
       if (length <= CONFIG.MAX_LENGTH) {
         self.pendulum.l2 = l;
+        self.update();
       } else {
         $(this).val(self.pendulum.l2);
       }
@@ -282,6 +284,13 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
   App.prototype.update = function() {
     var idx = this.index;
+
+    for (var i = 0, n = this.n; i < n; ++i) {
+      this.previousPosition[i] = this.position[i];
+      this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
+      var dpos = Math.sqrt(Math.pow(this.position[i].x2 - this.previousPosition[i].x2, 2) + Math.pow(this.position[i].y2 - this.previousPosition[i].y2, 2));
+      this.distance[i] += dpos;
+    }
 
     this.pendulumLayer.scene.context.clearRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
     this.traceLayer.scene.context.fillStyle = 'rgba(255, 255, 255, 0.01)';
@@ -431,10 +440,6 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
     for (var i = 0; i < this.n; ++i) {
       this.x[i] = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [tau1, tau2], this.x[i], dt);
-      this.previousPosition[i] = this.position[i];
-      this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
-      var dpos = Math.sqrt(Math.pow(this.position[i].x2 - this.previousPosition[i].x2, 2) + Math.pow(this.position[i].y2 - this.previousPosition[i].y2, 2));
-      this.distance[i] += dpos;
     }
 
     this.energy = this.calculateEnergy(this.x[this.index], this.pendulum);
@@ -569,6 +574,15 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.L2_ID).val(1.0);
     $(CONFIG.NUM_ID).val(1);
     $(CONFIG.INDEX_ID).val(1);
+
+    this.pendulum = {
+      m1:   1.0,
+      m2:   1.0,
+      l1:   1.0,
+      l2:   1.0,
+      g:    9.81,
+      b:    0.0
+    };
 
     this.update();
   };
