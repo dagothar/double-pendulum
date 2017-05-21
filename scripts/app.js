@@ -24,14 +24,18 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     SLIDER_DT_ID:   '.slider-dt',
     DT_ID:          '.dt',
     VIEW_BOB_SIZE:  5,
+    VIEW_ARC_SIZE:  15,
     SIM_DT:         0.01,
     M1_ID:          '.mass1',
     M2_ID:          '.mass2',
     L1_ID:          '.length1',
     L2_ID:          '.length2',
     SLIDER_B_ID:    '.slider-damping',
+    SLIDER_G_ID:    '.slider-gravitation',
     DAMPING_ID:     '.damping',
-    MAX_LENGTH:     2.4
+    GRAVITATION_ID: '.gravitation',
+    MAX_LENGTH:     2.4,
+    TAU_MAG:        10.0,
   };
 
 
@@ -49,6 +53,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     ];
     this.startx = this.x0;
     this.x = this.x0;
+    this.tau1 = 0.0;
+    this.tau2 = 0.0;
 
     this.position = undefined;
     this.previousPosition = undefined;
@@ -97,8 +103,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var cos = Math.cos;
 
 
-    var d2th1 = -(l1*tau2*cos(q1 - q2) - l2*tau1 + (g*l1*l2*m2*sin(q1 - 2*q2))/2 + (dq1*dq1*l1*l1*l2*m2*sin(2*q1 - 2*q2))/2 + dq2*dq2*l1*l2*l2*m2*sin(q1 - q2) + g*l1*l2*m1*sin(q1) + (g*l1*l2*m2*sin(q1))/2)/(l1*l1*l2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2)));
-    var d2th2 = (l1*m1*tau2 + l1*m2*tau2 - l2*m2*tau1*cos(q1 - q2) + dq1*dq1*l1*l1*l2*m2*m2*sin(q1 - q2) - (g*l1*l2*m2*m2*sin(q2))/2 + (dq2*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2))/2 + (g*l1*l2*m2*m2*sin(2*q1 - q2))/2 + dq1*dq1*l1*l1*l2*m1*m2*sin(q1 - q2) - (g*l1*l2*m1*m2*sin(q2))/2 + (g*l1*l2*m1*m2*sin(2*q1 - q2))/2)/(l1*l2*l2*m2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2)));
+    var d2th1 = -(l1*tau2*cos(q1 - q2) - l2*tau1 + (g*l1*l2*m2*sin(q1 - 2*q2))/2 + (dq1*dq1*l1*l1*l2*m2*sin(2*q1 - 2*q2))/2 + dq2*dq2*l1*l2*l2*m2*sin(q1 - q2) + g*l1*l2*m1*sin(q1) + (g*l1*l2*m2*sin(q1))/2)/(l1*l1*l2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2))) - dq1 * b;
+    var d2th2 = (l1*m1*tau2 + l1*m2*tau2 - l2*m2*tau1*cos(q1 - q2) + dq1*dq1*l1*l1*l2*m2*m2*sin(q1 - q2) - (g*l1*l2*m2*m2*sin(q2))/2 + (dq2*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2))/2 + (g*l1*l2*m2*m2*sin(2*q1 - q2))/2 + dq1*dq1*l1*l1*l2*m1*m2*sin(q1 - q2) - (g*l1*l2*m1*m2*sin(q2))/2 + (g*l1*l2*m1*m2*sin(2*q1 - q2))/2)/(l1*l2*l2*m2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2))) - dq2 * b;
     var dx = [
       x[1],
       d2th1,
@@ -162,6 +168,10 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       self.pendulum.b = 0.01 * $(this).val();
       self.update();
     });
+    $(CONFIG.SLIDER_G_ID).val(100).on('input change', function() {
+      self.pendulum.g = 0.01 * 9.81 * $(this).val();
+      self.update();
+    });
     $(CONFIG.M1_ID).on('input change', function() {
       self.pendulum.m1 = parseFloat($(this).val());
     });
@@ -188,6 +198,40 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     });
 
     $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
+
+    $(window).keydown(function(e) {
+      switch (e.key) {
+        case 'q':
+          self.tau1 = -CONFIG.TAU_MAG;
+          break;
+        case 'w':
+          self.tau1 = CONFIG.TAU_MAG;
+          break;
+        case 'o':
+          self.tau2 = -CONFIG.TAU_MAG;
+          break;
+        case 'p':
+          self.tau2 = CONFIG.TAU_MAG;
+          break;
+        default:
+          break;
+      }
+    });
+
+    $(window).keyup(function(e) {
+      switch (e.key) {
+        case 'q':
+        case 'w':
+          self.tau1 = 0.0;
+          break;
+        case 'o':
+        case 'p':
+          self.tau2 = 0.0;
+          break;
+        default:
+          break;
+      }
+    });
 
     $(CONFIG.DIV_START_ID).show();
     $(CONFIG.DIV_STOP_ID).hide();
@@ -220,6 +264,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.ETOTAL_ID).text(this.energy.E.toFixed(2) + ' J');
     $(CONFIG.DT_ID).text((1/this.tscale).toFixed(2) + 'x');
     $(CONFIG.DAMPING_ID).text(this.pendulum.b.toFixed(2));
+    $(CONFIG.GRAVITATION_ID).text((this.pendulum.g/9.81).toFixed(2) + 'x');
   };
 
 
@@ -316,9 +361,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.step = function() {
     var self = this;
 
+    var tau1 = this.tau1 * (this.pendulum.l1 + this.pendulum.l2);
+    var tau2 = this.tau2 * (this.pendulum.l2);
+
     var dt = this.dt / this.tscale;
     this.t += dt;
-    this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [0, 0], this.x, dt);
+    this.x = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [tau1, tau2], this.x, dt);
     this.previousPosition = this.position;
     this.position = this.calculatePosition(this.x, this.pendulum);
     this.energy = this.calculateEnergy(this.x, this.pendulum);
@@ -379,6 +427,26 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     ctx.lineTo(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE);
     ctx.lineTo(x2*CONFIG.VIEW_SCALE,y2*CONFIG.VIEW_SCALE);
     ctx.stroke();
+
+    ctx.strokeStyle = 'red';
+    if (this.tau1 > 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, CONFIG.VIEW_ARC_SIZE, -this.x[0]+Math.PI/2-1*this.tau1/CONFIG.TAU_MAG, -this.x[0]+Math.PI/2);
+      ctx.stroke();
+    } else if (this.tau1 < 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, CONFIG.VIEW_ARC_SIZE, -this.x[0]+Math.PI/2, -this.x[0]+Math.PI/2-1*this.tau1/CONFIG.TAU_MAG);
+      ctx.stroke();
+    }
+    if (this.tau2 > 0) {
+      ctx.beginPath();
+      ctx.arc(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE, CONFIG.VIEW_ARC_SIZE, -this.x[2]+Math.PI/2-1*this.tau2/CONFIG.TAU_MAG, -this.x[2]+Math.PI/2);
+      ctx.stroke();
+    } else if (this.tau2 < 0) {
+      ctx.beginPath();
+      ctx.arc(x1*CONFIG.VIEW_SCALE, y1*CONFIG.VIEW_SCALE, CONFIG.VIEW_ARC_SIZE, -this.x[2]+Math.PI/2, -this.x[2]+Math.PI/2-1*this.tau2/CONFIG.TAU_MAG);
+      ctx.stroke();
+    }
     ctx.restore();
   };
 
