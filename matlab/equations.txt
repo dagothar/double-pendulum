@@ -1,4 +1,4 @@
-d2q1 = -(2*l1*tau2*cos(q1 - q2) - 2*l2*tau1 + g*l1*l2*m2*sin(q1 - 2*q2) + dq1^2*l1^2*l2*m2*sin(2*q1 - 2*q2) + 2*dq2^2*l1*l2^2*m2*sin(q1 - q2) + 2*g*l1*l2*m1*sin(q1) + g*l1*l2*m2*sin(q1) - dq1*dq2*l1^2*l2*m2*sin(2*q1 - 2*q2) - 2*dq1*dq2*l1*l2^2*m2*sin(q1 - q2))/(l1^2*l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)))
-d2q2 = (2*l1*m1*tau2 + 2*l1*m2*tau2 - 2*l2*m2*tau1*cos(q1 - q2) + 2*dq1^2*l1^2*l2*m2^2*sin(q1 - q2) - g*l1*l2*m2^2*sin(q2) + dq2^2*l1*l2^2*m2^2*sin(2*q1 - 2*q2) + g*l1*l2*m2^2*sin(2*q1 - q2) - 2*dq1*dq2*l1^2*l2*m2^2*sin(q1 - q2) + 2*dq1^2*l1^2*l2*m1*m2*sin(q1 - q2) - g*l1*l2*m1*m2*sin(q2) - dq1*dq2*l1*l2^2*m2^2*sin(2*q1 - 2*q2) + g*l1*l2*m1*m2*sin(2*q1 - q2) - 2*dq1*dq2*l1^2*l2*m1*m2*sin(q1 - q2))/(l1*l2^2*m2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)))
-T = (m1*(dq1^2*l1^2*cos(q1)^2 + dq1^2*l1^2*sin(q1)^2))/2 + (m2*((dq1*l1*cos(q1) + dq2*l2*cos(q2))^2 + (dq1*l1*sin(q1) + dq2*l2*sin(q2))^2))/2
+d2q1 = -(2*g*m1*sin(q1) + g*m2*sin(q1) + g*m2*sin(q1 - 2*q2) + 2*dq2^2*l2*m2*sin(q1 - q2) + dq1^2*l1*m2*sin(2*q1 - 2*q2) - 2*dq1*dq2*l2*m2*sin(q1 - q2) - dq1*dq2*l1*m2*sin(2*q1 - 2*q2))/(l1*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)))
+d2q2 = -(g*m1*sin(q2) + g*m2*sin(q2) - g*m1*sin(2*q1 - q2) - g*m2*sin(2*q1 - q2) - 2*dq1^2*l1*m1*sin(q1 - q2) - 2*dq1^2*l1*m2*sin(q1 - q2) - dq2^2*l2*m2*sin(2*q1 - 2*q2) + 2*dq1*dq2*l1*m1*sin(q1 - q2) + 2*dq1*dq2*l1*m2*sin(q1 - q2) + dq1*dq2*l2*m2*sin(2*q1 - 2*q2))/(l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)))
+T = (dq1^2*l1^2*m1)/2 + (dq1^2*l1^2*m2)/2 + (dq2^2*l2^2*m2)/2 + dq1*dq2*l1*l2*m2*cos(q1 - q2)
 U = - g*m2*(l1*cos(q1) + l2*cos(q2)) - g*l1*m1*cos(q1)

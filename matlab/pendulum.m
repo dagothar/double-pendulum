@@ -32,10 +32,10 @@ L = T - U
 syms q1 q2 dq1 dq2 d2q1 d2q2
 dLddth1 = subs(diff(subs(L, dth1, dq1), dq1), dq1, dth1);
 dLddth1dt = diff(dLddth1, t);
-dLdth1 = diff(subs(L, th1, q1), q1);
+dLdth1 = subs(diff(subs(L, th1, q1), q1), q1, th1);
 dLddth2 = subs(diff(subs(L, dth2, dq2), dq2), dq2, dth2);
 dLddth2dt = diff(dLddth2, t);
-dLdth2 = diff(subs(L, th2, q2), q2);
+dLdth2 = subs(diff(subs(L, th2, q2), q2), q2, th2);
 e1 = dLddth1dt - dLdth1;
 e2 = dLddth2dt - dLdth2;
 e1 = subs(e1, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
@@ -43,12 +43,14 @@ e2 = subs(e2, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q
 
 %% Euler-Lagrange equations
 eqns = [
-    e1 == tau1
-    e2 == tau2
+    e1 == 0
+    e2 == 0
     ]
 
 %% Solve equations
 [d2q1, d2q2] = solve(eqns, [d2q1 d2q2]);
+T = simplify(T)
+U = simplify(U)
 d2q1 = simplify(d2q1)
 d2q2 = simplify(d2q2)
 
