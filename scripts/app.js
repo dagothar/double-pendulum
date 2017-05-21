@@ -97,9 +97,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var cos = Math.cos;
 
 
-    var d2th1 = -(g*m1*sin(q1) + g*m2*sin(q1) + dq2*dq2*l2*m2*sin(q1 - q2) - g*m2*cos(q1 - q2)*sin(q2) + dq1*dq1*l1*m2*cos(q1 - q2)*sin(q1 - q2))/(l1*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2)));
-    var d2th2 = (g*m1*sin(2*q1 - q2) - g*m2*sin(q2) - g*m1*sin(q2) + g*m2*sin(2*q1 - q2) + 2*dq1*dq1*l1*m1*sin(q1 - q2) + 2*dq1*dq1*l1*m2*sin(q1 - q2) + dq2*dq2*l2*m2*sin(2*q1 - 2*q2))/(l2*(2*m1 + m2 - m2*cos(2*q1 - 2*q2)));
-
+    var d2th1 = -(l1*tau2*cos(q1 - q2) - l2*tau1 + (g*l1*l2*m2*sin(q1 - 2*q2))/2 + (dq1*dq1*l1*l1*l2*m2*sin(2*q1 - 2*q2))/2 + dq2*dq2*l1*l2*l2*m2*sin(q1 - q2) + g*l1*l2*m1*sin(q1) + (g*l1*l2*m2*sin(q1))/2)/(l1*l1*l2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2)));
+    var d2th2 = (l1*m1*tau2 + l1*m2*tau2 - l2*m2*tau1*cos(q1 - q2) + dq1*dq1*l1*l1*l2*m2*m2*sin(q1 - q2) - (g*l1*l2*m2*m2*sin(q2))/2 + (dq2*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2))/2 + (g*l1*l2*m2*m2*sin(2*q1 - q2))/2 + dq1*dq1*l1*l1*l2*m1*m2*sin(q1 - q2) - (g*l1*l2*m1*m2*sin(q2))/2 + (g*l1*l2*m1*m2*sin(2*q1 - q2))/2)/(l1*l2*l2*m2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2)));
     var dx = [
       x[1],
       d2th1,
@@ -303,7 +302,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
 
     var Ek = (dq1*dq1*l1*l1*m1)/2 + (dq1*dq1*l1*l1*m2)/2 + (dq2*dq2*l2*l2*m2)/2 + dq1*dq2*l1*l2*m2*cos(q1 - q2);
     var Epmin = - g*m2*(l1 + l2) - g*l1*m1;
-    var Ep = - g*m2*(l1*cos(q1) + l2*cos(q2)) - g*l1*m1*cos(q1);
+    var Ep = - g*m2*(l1*cos(q1) + l2*cos(q2)) - g*l1*m1*cos(q1) - Epmin;
     var E = Ek + Ep;
 
     return {
