@@ -44,8 +44,8 @@ d_L_q2 = subs(d_L_q2, q2, th2);
 d_L_t1 = diff(d_L_dq1, t);
 d_L_t2 = diff(d_L_dq2, t);
 
-e1 = d_L_t1 - d_L_q1;
-e2 = d_L_t2 - d_L_q2;
+e1 = d_L_t1 + d_L_q1;
+e2 = d_L_t2 + d_L_q2;
 
 T = subs(T, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
 V = subs(V, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
