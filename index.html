@@ -70,8 +70,6 @@
               <button type="button" class="button-stop btn btn-primary btn-block btn-sm">Stop <span class="glyphicon glyphicon-stop"></span></button>
             </div>
 
-
-
             <!-- clear button -->
             <div class="form-group col-md-6">
               <button type="button" class="button-clear btn btn-default btn-block btn-sm">Clear <span class="glyphicon glyphicon-erase"></span></button>
@@ -80,6 +78,25 @@
             <!-- download button -->
             <div class="form-group col-md-6">
               <button type="button" class="button-download btn btn-default btn-block btn-sm">Picture <span class="glyphicon glyphicon-download"></span></button>
+            </div>
+
+            <!-- parameters -->
+            <div class="form-group col-md-6">
+              <label>m<sub>1</sub>:</label>
+              <input type="number" min="0.1" value="1.0" max="10.0" step="0.1" class="mass1"/>
+            </div>
+            <div class="form-group col-md-6">
+              <label>m<sub>2</sub>:</label>
+              <input type="number" min="0.1" value="1.0" max="10.0" step="0.1" class="mass2"/>
+            </div>
+
+            <div class="form-group col-md-6">
+              <label>l<sub>1</sub>:</label>
+              <input type="number" min="0.1" value="1.0" max="2.0" step="0.1" class="length1"/>
+            </div>
+            <div class="form-group col-md-6">
+              <label>l<sub>2</sub>:</label>
+              <input type="number" min="0.1" value="1.0" max="2.0" step="0.1" class="length2"/>
             </div>
 
             <!-- speed slider -->
@@ -100,22 +117,16 @@
               <input type="range" min="0" val="0" max="100" class="slider-damping"/>
             </div>
 
-            <div class="form-group col-md-6">
-              <label>m<sub>1</sub>:</label>
-              <input type="number" min="0.1" value="1.0" max="10.0" step="0.1" class="mass1"/>
-            </div>
-            <div class="form-group col-md-6">
-              <label>m<sub>2</sub>:</label>
-              <input type="number" min="0.1" value="1.0" max="10.0" step="0.1" class="mass2"/>
+            <!-- multiple pendulums -->
+            <div class="form-group col-md-12">
+              <label>pendulums:</label>
+              <input type="number" min="1" value="1" max="10" step="1" class="num"/>
             </div>
 
-            <div class="form-group col-md-6">
-              <label>l<sub>1</sub>:</label>
-              <input type="number" min="0.1" value="1.0" max="2.0" step="0.1" class="length1"/>
-            </div>
-            <div class="form-group col-md-6">
-              <label>l<sub>2</sub>:</label>
-              <input type="number" min="0.1" value="1.0" max="2.0" step="0.1" class="length2"/>
+            <!-- noise slider -->
+            <div class="form-group col-md-12">
+              <label>position noise:</label> <span class="noise pull-right">0</span>
+              <input type="range" min="0" val="50" max="100" class="slider-noise"/>
             </div>
 
           </div>

@@ -30,12 +30,16 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     M2_ID:          '.mass2',
     L1_ID:          '.length1',
     L2_ID:          '.length2',
+    NUM_ID:         '.num',
     SLIDER_B_ID:    '.slider-damping',
     SLIDER_G_ID:    '.slider-gravitation',
+    SLIDER_N_ID:    '.slider-noise',
     DAMPING_ID:     '.damping',
     GRAVITATION_ID: '.gravitation',
+    NOISE_ID:       '.noise',
     MAX_LENGTH:     2.4,
     TAU_MAG:        10.0,
+    NOISE_MAG:      1,
   };
 
 
@@ -107,15 +111,12 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       0.0     // dtheta2
     ];
     this.startx = this.x0;
-    this.x = [this.x0, [
-      3.1,    // theta1
-      0.0,    // dtheta1
-      3.14,    // theta2
-      0.0     // dtheta2
-    ]];
+    this.n = 1;
+    this.index = 0;
+    this.x = [];
     this.tau1 = 0.0;
     this.tau2 = 0.0;
-    this.index = 0;
+    this.noise = 0.1*CONFIG.NOISE_MAG;
 
     this.position = [undefined];
     this.previousPosition = [undefined];
@@ -178,6 +179,10 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       self.pendulum.g = 0.01 * 9.81 * $(this).val();
       self.update();
     });
+    $(CONFIG.SLIDER_N_ID).val(10).on('input change', function() {
+      self.noise = 0.01 * CONFIG.NOISE_MAG * $(this).val();
+      self.update();
+    });
     $(CONFIG.M1_ID).on('input change', function() {
       self.pendulum.m1 = parseFloat($(this).val());
     });
@@ -201,6 +206,11 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       } else {
         $(this).val(self.pendulum.l2);
       }
+    });
+    $(CONFIG.NUM_ID).val(this.n).on('input change', function() {
+      var n = parseInt($(this).val());
+      if (n > 0 && n <= 10) self.n = n;
+      self.placePendulum(self.x[0], self.noise);
     });
 
     $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
@@ -242,7 +252,9 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.DIV_START_ID).show();
     $(CONFIG.DIV_STOP_ID).hide();
 
-    for (var i = 0, n = this.x.length; i < n; ++i)
+    this.placePendulum(this.x0, this.noise);
+
+    for (var i = 0, n = this.n; i < n; ++i)
       this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
     this.energy = this.calculateEnergy(this.x[0], this.pendulum);
     this.update();
@@ -259,8 +271,8 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.traceLayer.scene.context.fillStyle = 'rgba(255, 255, 255, 0.01)';
     this.traceLayer.scene.context.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
 
-    for (var i = 0, n = this.x.length; i < n; ++i) {
-      this.drawPendulum(this.pendulumLayer.scene.context, this.position[i], 1.0*i/n);
+    for (var i = this.n-1; i >= 0; --i) {
+      this.drawPendulum(this.pendulumLayer.scene.context, this.position[i], 1.0*i/this.n);
       this.drawTrace(this.traceLayer.scene.context, this.previousPosition[i], this.position[i], this.traceColor[i]);
     }
 
@@ -280,6 +292,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     $(CONFIG.DT_ID).text((1/this.tscale).toFixed(2) + 'x');
     $(CONFIG.DAMPING_ID).text(this.pendulum.b.toFixed(2));
     $(CONFIG.GRAVITATION_ID).text((this.pendulum.g/9.81).toFixed(2) + 'x');
+    $(CONFIG.NOISE_ID).text((this.noise).toFixed(2));
   };
 
 
@@ -323,11 +336,29 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     if (pos.x < 0)
       startx = [-1, 0, -1.1, 0];
 
-    this.x = this.invKin(startx, pos, this.pendulum);
-    this.position = this.calculatePosition(this.x, this.pendulum);
-    this.previousPosition = this.position;
-    this.energy = this.calculateEnergy(this.x, this.pendulum);
-    this.traceColor = randomColor();
+    this.x[0] = this.invKin(startx, pos, this.pendulum);
+    this.placePendulum(this.x[0], this.noise);
+  };
+
+
+  App.prototype.placePendulum = function(x, noise) {
+    this.x[0] = x.slice();
+    this.position[0] = this.calculatePosition(this.x[0], this.pendulum);
+    this.previousPosition[0] = this.position[0];
+    this.energy = this.calculateEnergy(this.x[0], this.pendulum);
+    this.traceColor[0] = randomColor();
+
+
+    for (var i = 1; i < this.n; ++i) {
+      this.x[i] = this.x[0].slice();
+      this.x[i][0] += 2*noise*Math.random()-noise;
+      this.x[i][2] += 2*noise*Math.random()-noise;
+      this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
+      this.previousPosition[i] = this.position[i];
+      this.energy = this.calculateEnergy(this.x[i], this.pendulum);
+      this.traceColor[i] = randomColor();
+    }
+
     this.update();
   };
 
@@ -382,7 +413,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var dt = this.dt / this.tscale;
     this.t += dt;
 
-    for (var i = 0, n = this.x.length; i < n; ++i) {
+    for (var i = 0; i < this.n; ++i) {
       this.x[i] = this.solver.solve(function(t, u, x) { return model(t, u, x, self.pendulum); }, this.t, [tau1, tau2], this.x[i], dt);
       this.previousPosition[i] = this.position[i];
       this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
@@ -505,7 +536,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     this.t = 0.0;
     this.distance = 0.0;
     this.x = [this.x0];
-    for (var i = 0, n = this.x.length; i < n; ++i) {
+    for (var i = 0; i < this.n; ++i) {
       this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
       this.previousPosition[i] = this.position[i];
     }
