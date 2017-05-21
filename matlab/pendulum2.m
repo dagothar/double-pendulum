@@ -40,20 +40,18 @@ d_L_q1 = diff(L, q1)
 d_L_dq2 = diff(L, dq2)
 d_L_q2 = diff(L, q2)
 
-syms Q1(t) Q2(t)
-dQ1 = diff(Q1, t);
-dQ2 = diff(Q2, t);
-d2Q1 = diff(Q1, t);
-d2Q2 = diff(Q2, t);
+syms Q1(t) Q2(t) dQ1(t) dQ2(t)
 
-d_L_dq1 = subs(d_L_dq1, {q1, dq1, q2, dq2}, {Q1, dQ1, Q2, dQ2})
-d_L_dq2 = subs(d_L_dq2, {q1, dq1, q2, dq2}, {Q1, dQ1, Q2, dQ2})
+% Manually substitute...
+d_L_dq1 = dQ1(t)*l1^2*m1 + dQ1(t)*l1^2*m2 + dQ2(t)*l1*l2*m2*cos(Q1(t) - Q2(t));
+d_L_dq2 = dQ2(t)*m2*l2^2 + dQ1(t)*l1*m2*cos(Q1(t) - Q2(t))*l2
 
 d_L_t1 = diff(d_L_dq1, t)
 d_L_t2 = diff(d_L_dq2, t)
 
+
 % Manually substitute...
-d_L_t1 = l1^2*m1*d2q1 + l1^2*m2*d2q1 + l1*l2*m2*cos(q1 - q2)*d2q2 - l1*l2*m2*sin(q1 - q2)*dq2*(dq1 - dq2);
+d_L_t1 = l1^2*m1*d2q1 + l1^2*m2*d2q1 + l1*l2*m2*cos(q1 - q2)*d2q2 - l1*l2*m2*sin(q1 - q2)*dq2*(dq1 - dq2)
 d_L_t2 = l2^2*m2*d2q2 + l1*l2*m2*cos(q1 - q2)*d2q1 - l1*l2*m2*sin(q1 - q2)*dq1*(dq1 - dq2);
 
 %% Euler-Lagrange equations
