@@ -29,15 +29,22 @@ U = -m1 * g * y1 - m2 * g * y2
 L = T - U
 
 %% Lagrange derivatives
-syms q1 q2 dq1 dq2 d2q1 d2q2
-dLddth1 = subs(diff(subs(L, dth1, dq1), dq1), dq1, dth1);
-dLddth1dt = diff(dLddth1, t);
-dLdth1 = subs(diff(subs(L, th1, q1), q1), q1, th1);
-dLddth2 = subs(diff(subs(L, dth2, dq2), dq2), dq2, dth2);
-dLddth2dt = diff(dLddth2, t);
-dLdth2 = subs(diff(subs(L, th2, q2), q2), q2, th2);
-e1 = dLddth1dt - dLdth1;
-e2 = dLddth2dt - dLdth2;
+syms q1 q2 dq1 dq2 d2q1 d2q2 
+
+d_L_dq1 = diff(subs(L, dth1, dq1), dq1);
+d_L_dq2 = diff(subs(L, dth2, dq2), dq2);
+d_L_q1 = diff(subs(L, th1, q1), q1);
+d_L_q2 = diff(subs(L, th2, q2), q2);
+
+d_L_dq1 = subs(d_L_dq1, {q1, dq1, q2, dq2}, {th1, dth1, th2, dth2});
+d_L_dq2 = subs(d_L_dq2, {q1, dq1, q2, dq2}, {th1, dth1, th2, dth2});
+
+d_L_t1 = diff(d_L_dq1, t);
+d_L_t2 = diff(d_L_dq2, t);
+
+e1 = d_L_t1 - d_L_q1;
+e2 = d_L_t2 - d_L_q2;
+
 e1 = subs(e1, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
 e2 = subs(e2, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
 
