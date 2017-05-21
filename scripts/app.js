@@ -548,14 +548,28 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
   App.prototype.reset = function() {
     this.stop();
     this.clear();
+
+    this.n = 1;
     this.t = 0.0;
-    this.distance = 0.0;
+    this.distance = [0.0];
     this.x = [this.x0];
     for (var i = 0; i < this.n; ++i) {
       this.position[i] = this.calculatePosition(this.x[i], this.pendulum);
       this.previousPosition[i] = this.position[i];
     }
     this.energy = this.calculateEnergy(this.x[0], this.pendulum);
+
+    $(CONFIG.SLIDER_DT_ID).val(100);
+    $(CONFIG.SLIDER_B_ID).val(0);
+    $(CONFIG.SLIDER_G_ID).val(100);
+    $(CONFIG.SLIDER_N_ID).val(10);
+    $(CONFIG.M1_ID).val(1.0);
+    $(CONFIG.M2_ID).val(1.0);
+    $(CONFIG.L1_ID).val(1.0);
+    $(CONFIG.L2_ID).val(1.0);
+    $(CONFIG.NUM_ID).val(1);
+    $(CONFIG.INDEX_ID).val(1);
+
     this.update();
   };
 
