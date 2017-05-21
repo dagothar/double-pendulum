@@ -41,17 +41,19 @@ d_L_q1 = diff(L, q1);
 d_L_q2 = diff(L, q2);
 
 syms Q1(t) Q2(t) dQ1(t) dQ2(t)
-d_L_dq1 = subs(d_L_dq1, {q1, dq1, q2, dq2}, {Q1, dQ1, Q2, dQ2});
+d_L_dq1 = subs(d_L_dq1, {q1, dq1, q2, dq2}, {Q1, dQ1, Q2, dQ2})
 d_L_dq2 = subs(d_L_dq2, {q1, dq1, q2, dq2}, {Q1, dQ1, Q2, dQ2});
 
-d_L_t1 = diff(d_L_dq1, t);
+d_L_t1 = diff(d_L_dq1, t)
 d_L_t2 = diff(d_L_dq2, t);
 
-d_L_t1 = subs(d_L_t1, {Q1, dQ1, Q2, dQ2}, {q1, dq1, q2, dq2});
+d_L_t1 = subs(d_L_t1, {Q1, dQ1, Q2, dQ2}, {q1, dq1, q2, dq2})
 d_L_t2 = subs(d_L_t2, {Q1, dQ1, Q2, dQ2}, {q1, dq1, q2, dq2});
 
 e1 = d_L_t1 - d_L_q1
 e2 = d_L_t2 - d_L_q2
+
+return
 
 e1 = subs(e1, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
 e2 = subs(e2, {th1, dth1, d2th1, th2, dth2, d2th2}, {q1, dq1, d2q1, q2, dq2, d2q2});
