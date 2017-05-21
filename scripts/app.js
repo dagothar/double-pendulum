@@ -230,7 +230,7 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
       }
     });
 
-    $(CONFIG.VIEW_ID).click(function(e) { self.pullPendulum(e); });
+    $(CONFIG.VIEW_ID).mousedown(function(e) { self.pullPendulum(e); });
 
     $(window).keydown(function(e) {
       switch (e.key) {
