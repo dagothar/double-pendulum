@@ -60,9 +60,22 @@ define(['jquery', 'rk4', 'concrete'], function($, rk4, Concrete) {
     var sin = Math.sin;
     var cos = Math.cos;
 
+    var sq1 = sin(q1);
+    var sq2 = sin(q2);
+    var cq1q2 = cos(q1 - q2);
+    var cq1q2_2 = cq1q2*cq1q2;
+    var sq1q2 = sin(q1 - q2);
+    var s2q12q2 = sin(2*q1 - 2*q2);
+    var l1_2 = l1 * l1;
+    var l2_2 = l2 * l2;
+    var dq1_2 = dq1 * dq1;
+    var dq2_2 = dq2 * dq2;
+    var m1_2 = m1 * m1;
+    var m2_2 = m2 * m2;
+    var m1_m2 = m1 * m2;
 
-    var d2th1 = -(l1*tau2*cos(q1 - q2) - l2*tau1 + (g*l1*l2*m2*sin(q1 - 2*q2))/2 + (dq1*dq1*l1*l1*l2*m2*sin(2*q1 - 2*q2))/2 + dq2*dq2*l1*l2*l2*m2*sin(q1 - q2) + g*l1*l2*m1*sin(q1) + (g*l1*l2*m2*sin(q1))/2)/(l1*l1*l2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2))) - dq1 * b;
-    var d2th2 = (l1*m1*tau2 + l1*m2*tau2 - l2*m2*tau1*cos(q1 - q2) + dq1*dq1*l1*l1*l2*m2*m2*sin(q1 - q2) - (g*l1*l2*m2*m2*sin(q2))/2 + (dq2*dq2*l1*l2*l2*m2*m2*sin(2*q1 - 2*q2))/2 + (g*l1*l2*m2*m2*sin(2*q1 - q2))/2 + dq1*dq1*l1*l1*l2*m1*m2*sin(q1 - q2) - (g*l1*l2*m1*m2*sin(q2))/2 + (g*l1*l2*m1*m2*sin(2*q1 - q2))/2)/(l1*l2*l2*m2*(m1 + m2 - m2*cos(q1 - q2)*cos(q1 - q2))) - dq2 * b;
+    var d2th1 = (-l1*tau2*cq1q2 + l2*tau1 - (g*l1*l2*m2*sin(q1 - 2*q2))/2 - (dq1_2*l1_2*l2*m2*s2q12q2)/2 - dq2_2*l1*l2_2*m2*sq1q2 - g*l1*l2*(m1+0.5*m2)*sq1)/(l1_2*l2*(m1 + m2 - m2*cq1q2_2)) - dq1 * b;
+    var d2th2 = (l1*(m1+m2)*tau2 - l2*m2*tau1*cq1q2 + dq1_2*l1_2*l2*(m2_2 + m1_m2)*sq1q2 - (g*l1*l2*(m2_2 + m1_m2)*sq2)/2 + (dq2_2*l1*l2_2*m2_2*s2q12q2)/2 + (g*l1*l2*(m2_2 + m1_m2)*sin(2*q1 - q2))/2)/(l1*l2_2*m2*(m1 + m2 - m2*cq1q2_2)) - dq2 * b;
     var dx = [
       x[1],
       d2th1,
